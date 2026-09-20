@@ -2,9 +2,19 @@
 -- Adds 1-5 star ratings for routes, given by signed-in visitors.
 -- One rating per account per route (rating again to change it). Creators
 -- cannot rate their own routes. Everyone can read the average and the count.
+--
+-- No client-callable SECURITY DEFINER functions: the security advisor flags those.
+-- Safe to run again, and also replaces the earlier version of this file.
 
+-- 0. Remove the earlier version (rate_route / my_ratings functions and the stats view) --
+drop function if exists public.rate_route(text, smallint);
+drop function if exists public.my_ratings();
+drop view if exists public.route_rating_stats;
+drop policy if exists "anyone can read rating values" on public.route_ratings;
+
+-- 1. Each user's own ratings ---------------------------------------------------------
 create table if not exists public.route_ratings (
-  user_id uuid not null references auth.users(id) on delete cascade,
+  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,
   route_id text not null references public.routes(id) on delete cascade,
   rating smallint not null check (rating between 1 and 5),
   updated_at timestamptz not null default now(),
@@ -13,73 +23,96 @@ create table if not exists public.route_ratings (
 
 alter table public.route_ratings enable row level security;
 
--- Nobody touches the table directly; writes go through rate_route() below.
--- Visitors may read only the non-identifying columns, which is enough for the average.
 revoke all on public.route_ratings from anon, authenticated;
-grant select (route_id, rating) on public.route_ratings to anon, authenticated;
+grant select, insert, update, delete on public.route_ratings to authenticated;
 
-drop policy if exists "anyone can read rating values" on public.route_ratings;
-create policy "anyone can read rating values"
+drop policy if exists "users read own ratings" on public.route_ratings;
+drop policy if exists "users rate routes" on public.route_ratings;
+drop policy if exists "users change own ratings" on public.route_ratings;
+drop policy if exists "users remove own ratings" on public.route_ratings;
+
+create policy "users read own ratings"
   on public.route_ratings for select
+  using (user_id = auth.uid());
+
+-- Only published routes, and never your own.
+create policy "users rate routes"
+  on public.route_ratings for insert
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.routes r
+      where r.id = route_id and r.published and r.owner_id is distinct from auth.uid()
+    )
+  );
+
+create policy "users change own ratings"
+  on public.route_ratings for update
+  using (user_id = auth.uid())
+  with check (
+    user_id = auth.uid()
+    and exists (
+      select 1 from public.routes r
+      where r.id = route_id and r.published and r.owner_id is distinct from auth.uid()
+    )
+  );
+
+create policy "users remove own ratings"
+  on public.route_ratings for delete
+  using (user_id = auth.uid());
+
+-- 2. Public totals per route: who rated is never exposed ---------------------------
+create table if not exists public.route_rating_totals (
+  route_id text primary key references public.routes(id) on delete cascade,
+  rating_count int not null,
+  rating_sum int not null
+);
+
+alter table public.route_rating_totals enable row level security;
+
+revoke all on public.route_rating_totals from anon, authenticated;
+grant select on public.route_rating_totals to anon, authenticated;
+
+drop policy if exists "anyone can read rating totals" on public.route_rating_totals;
+create policy "anyone can read rating totals"
+  on public.route_rating_totals for select
   using (true);
 
--- Average and count per route (runs with the caller's permissions).
-create or replace view public.route_rating_stats as
-select
-  route_id,
-  count(*)::int as rating_count,
-  round(avg(rating), 1)::float as rating_avg
-from public.route_ratings
-group by route_id;
-
-alter view public.route_rating_stats set (security_invoker = true);
-grant select on public.route_rating_stats to anon, authenticated;
-
--- Give (or change) the signed-in user's rating. A null rating removes it.
-create or replace function public.rate_route(p_route_id text, p_rating smallint)
-returns void
+-- Keeps the totals in step with the ratings. It only runs as a trigger, so
+-- nobody is allowed to call it directly.
+create or replace function public.update_rating_totals()
+returns trigger
 language plpgsql
 security definer
 set search_path = ''
 as $$
-declare
-  v_user uuid := auth.uid();
 begin
-  if v_user is null then
-    raise exception 'not signed in';
+  if tg_op in ('UPDATE', 'DELETE') then
+    update public.route_rating_totals
+      set rating_count = rating_count - 1, rating_sum = rating_sum - old.rating
+      where route_id = old.route_id;
+    delete from public.route_rating_totals where route_id = old.route_id and rating_count <= 0;
   end if;
-  if not exists (
-    select 1 from public.routes
-    where id = p_route_id and published and owner_id is distinct from v_user
-  ) then
-    raise exception 'route not found';
+  if tg_op in ('INSERT', 'UPDATE') then
+    insert into public.route_rating_totals (route_id, rating_count, rating_sum)
+    values (new.route_id, 1, new.rating)
+    on conflict (route_id) do update
+      set rating_count = public.route_rating_totals.rating_count + 1,
+          rating_sum = public.route_rating_totals.rating_sum + new.rating;
   end if;
-  if p_rating is null then
-    delete from public.route_ratings where user_id = v_user and route_id = p_route_id;
-    return;
-  end if;
-  if p_rating < 1 or p_rating > 5 then
-    raise exception 'rating must be 1-5';
-  end if;
-  insert into public.route_ratings (user_id, route_id, rating, updated_at)
-  values (v_user, p_route_id, p_rating, now())
-  on conflict (user_id, route_id) do update
-    set rating = excluded.rating, updated_at = now();
+  return null;
 end;
 $$;
 
--- The ratings the signed-in user already gave (to show their stars).
-create or replace function public.my_ratings()
-returns table (route_id text, rating smallint)
-language sql
-stable
-security definer
-set search_path = ''
-as $$
-  select route_id, rating from public.route_ratings where user_id = auth.uid();
-$$;
+revoke execute on function public.update_rating_totals() from public, anon, authenticated;
 
-revoke execute on function public.rate_route(text, smallint) from public, anon;
-revoke execute on function public.my_ratings() from public, anon;
-grant execute on function public.rate_route(text, smallint) to authenticated;
-grant execute on function public.my_ratings() to authenticated;
+drop trigger if exists route_ratings_totals on public.route_ratings;
+create trigger route_ratings_totals
+  after insert or update or delete on public.route_ratings
+  for each row execute function public.update_rating_totals();
+
+-- Start the totals from any ratings that already exist.
+insert into public.route_rating_totals (route_id, rating_count, rating_sum)
+select route_id, count(*), sum(rating) from public.route_ratings group by route_id
+on conflict (route_id) do update
+  set rating_count = excluded.rating_count, rating_sum = excluded.rating_sum;
