@@ -3,11 +3,13 @@ import { getCategory } from '../data/routes.js';
 import { googleMapsUrl, wazeUrl, routeDirectionsUrl } from '../utils/maps.js';
 import { stopImagePath } from '../utils/url.js';
 import { press } from '../utils/a11y.js';
+import RatePanel from './RatePanel.jsx';
 
-export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenProfile, onBack, onShare, editable, onCoverUploaded, onStopImageUploaded }) {
+export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenProfile, onBack, onShare, editable, signedIn, isOwner, myRating, onRate, onOpenAccount, onCoverUploaded, onStopImageUploaded }) {
   const facts = [
     { value: route.duration.split(' · ')[1] || route.duration, label: 'משך המסלול' },
     { value: route.stops.length, label: 'תחנות' },
+    ...(route.rating_count ? [{ value: '★ ' + route.rating_avg.toFixed(1), label: `דירוג (${route.rating_count})` }] : []),
   ];
 
   return (
@@ -101,6 +103,8 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
             </div>
           ))}
         </div>
+
+        <RatePanel signedIn={signedIn} isOwner={isOwner} myRating={myRating} onRate={onRate} onOpenAccount={onOpenAccount} />
 
         <div className="detail-actions">
           <div className="btn-primary" {...press(() => onToggleSave(route.id))}>

@@ -1067,3 +1067,37 @@ a:focus-visible {
   font-size: 11.5px;
 }
 .bottom-nav__links .link-action { font-size: 11.5px; min-height: 28px; display: inline-flex; align-items: center; }
+
+/* ---------- Ratings ---------- */
+
+.rating-summary { display: inline-flex; align-items: center; gap: 3px; white-space: nowrap; }
+.rating-summary b { color: var(--text-dark); font-weight: 700; }
+.rating-summary__star { color: #C98A1B; font-size: 13px; }
+
+.rate-panel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  background: var(--bg-card);
+  border: 1px solid var(--border-light);
+  border-radius: 14px;
+  text-align: center;
+}
+.rate-panel__title { font-size: 15px; font-weight: 700; color: var(--text-dark); }
+.rate-panel__hint { font-size: 12.5px; color: var(--text-muted); line-height: 1.6; }
+.rate-panel__stars { display: flex; gap: 4px; }
+.rate-panel__star {
+  background: none;
+  border: none;
+  padding: 0 4px;
+  min-width: 44px;
+  min-height: 44px;
+  font-size: 32px;
+  line-height: 1;
+  color: #CFCBBE;
+  cursor: pointer;
+}
+.rate-panel__star--on { color: #E0A92E; }
+.rate-panel__star:focus-visible { outline: 2px solid var(--link); border-radius: 8px; }

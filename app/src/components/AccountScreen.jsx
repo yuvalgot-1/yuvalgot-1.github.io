@@ -74,7 +74,7 @@ export default function AccountScreen({ session, isCreator, creatorMode, onSignO
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>מחוברים כ־</span>
           <span dir="ltr" style={{ fontWeight: 700, textAlign: 'right' }}>{session.user.email}</span>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            המסלולים ששמרתם ♡ נשמרים בחשבון וזמינים בכל מכשיר.
+            המסלולים ששמרתם ♡ נשמרים בחשבון וזמינים בכל מכשיר. אפשר גם לדרג מסלולים בכוכבים.
           </span>
           {isCreator && (creatorMode ? (
             <span className="link-action" {...press(onSwitchToPublic)}>מעבר למצב גולש</span>
@@ -95,7 +95,7 @@ export default function AccountScreen({ session, isCreator, creatorMode, onSignO
       ) : (
         <form className="builder-card" onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
           <span style={{ fontSize: 13, color: 'var(--text-muted)' }}>
-            אפשר להשתמש באתר בלי חשבון. עם חשבון, המסלולים ששמרתם ♡ יישמרו בכל המכשירים שלכם.
+            אפשר להשתמש באתר בלי חשבון. עם חשבון, המסלולים ששמרתם ♡ יישמרו בכל המכשירים שלכם ותוכלו לדרג מסלולים.
           </span>
           <div className="chip-row" style={{ margin: 0, padding: 0 }}>
             <div className={'chip' + (tab === 'signin' ? ' chip--active' : '')} aria-pressed={tab === 'signin'} {...press(() => switchTab('signin'))}>

@@ -4,6 +4,7 @@ import { supabase } from './lib/supabase.js';
 import { stopImagePath } from './utils/url.js';
 import { fetchRoutes, insertRoute, updateRoute, deleteRoute } from './lib/routesApi.js';
 import { fetchCreatorName, fetchSavedIds, addSavedRoutes, removeSavedRoute } from './lib/accountApi.js';
+import { fetchRatingStats, fetchMyRatings, rateRoute } from './lib/ratingsApi.js';
 import { COLLECTIONS } from './data/routes.js';
 import { filterRoutes, hasActiveFilters } from './utils/filterRoutes.js';
 import Header from './components/Header.jsx';
@@ -51,7 +52,9 @@ export default function App() {
   const [profileId, setProfileId] = useState(null);
   const [recovering, setRecovering] = useState(OPENED_FOR_RECOVERY);
 
-  const [routes, setRoutes] = useState([]);
+  const [baseRoutes, setBaseRoutes] = useState([]);
+  const [ratingStats, setRatingStats] = useState({});
+  const [myRatings, setMyRatings] = useState({});
   const [routesLoading, setRoutesLoading] = useState(true);
   const [routesError, setRoutesError] = useState(null);
 
@@ -127,7 +130,7 @@ export default function App() {
     setRoutesError(null);
     try {
       const data = await fetchRoutes();
-      setRoutes(data);
+      setBaseRoutes(data);
     } catch (e) {
       setRoutesError(e.message || 'שגיאה בטעינת המסלולים');
     } finally {
@@ -138,6 +141,27 @@ export default function App() {
   useEffect(() => {
     if (!authLoading) loadRoutes();
   }, [authLoading, session, loadRoutes]);
+
+  // ratings are an extra: if they fail to load, routes still work without them
+  const loadRatings = useCallback(() => {
+    fetchRatingStats().then(setRatingStats).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    if (!authLoading) loadRatings();
+  }, [authLoading, loadRatings]);
+
+  useEffect(() => {
+    if (!userId) { setMyRatings({}); return; }
+    let cancelled = false;
+    fetchMyRatings().then((r) => { if (!cancelled) setMyRatings(r); }).catch(() => {});
+    return () => { cancelled = true; };
+  }, [userId]);
+
+  const routes = useMemo(
+    () => baseRoutes.map((r) => ({ ...r, rating_avg: ratingStats[r.id]?.avg ?? null, rating_count: ratingStats[r.id]?.count ?? 0 })),
+    [baseRoutes, ratingStats],
+  );
 
   // signed-in visitors: merge this device's saved routes into the account, then use the account's list
   const [syncedUser, setSyncedUser] = useState(null);
@@ -236,6 +260,19 @@ export default function App() {
         setToast('השמירה בחשבון נכשלה');
         setTimeout(() => setToast(''), 1800);
       });
+    }
+  }
+
+  async function rate(routeId, rating) {
+    const previous = myRatings[routeId];
+    setMyRatings((m) => ({ ...m, [routeId]: rating }));
+    try {
+      await rateRoute(routeId, rating);
+      loadRatings();
+    } catch {
+      setMyRatings((m) => ({ ...m, [routeId]: previous }));
+      setToast('שמירת הדירוג נכשלה');
+      setTimeout(() => setToast(''), 1800);
     }
   }
 
@@ -557,6 +594,11 @@ export default function App() {
               onBack={() => { clearRouteHash(); setScreen('feed'); }}
               onShare={shareRoute}
               editable={creatorReady}
+              signedIn={!!session}
+              isOwner={!!userId && openRouteData.owner_id === userId}
+              myRating={myRatings[openRouteData.id] || 0}
+              onRate={(n) => rate(openRouteData.id, n)}
+              onOpenAccount={() => navigate('account')}
               onCoverUploaded={() => markCoverUploaded(openRouteData.id)}
               onStopImageUploaded={(i) => markStopImageUploaded(openRouteData.id, i)}
             />

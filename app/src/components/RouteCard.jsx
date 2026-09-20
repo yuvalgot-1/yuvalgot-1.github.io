@@ -1,6 +1,7 @@
 import ImageSlot from './ImageSlot.jsx';
 import { CATEGORIES, COLLECTIONS, getCategory } from '../data/routes.js';
 import { press } from '../utils/a11y.js';
+import RatingSummary from './RatingSummary.jsx';
 
 function categoryCounts(stops) {
   const counts = {};
@@ -36,6 +37,8 @@ export default function RouteCard({ route, saved, onOpen, onToggleSave, onOpenPr
           <span>{route.duration}</span>
           <span className="route-card__facts-sep">•</span>
           <span>{route.stops.length} תחנות</span>
+          {route.rating_count > 0 && <span className="route-card__facts-sep">•</span>}
+          <RatingSummary avg={route.rating_avg} count={route.rating_count} />
         </div>
         <div className="route-card__right">
           <div
