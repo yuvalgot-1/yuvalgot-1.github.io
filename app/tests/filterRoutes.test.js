@@ -27,6 +27,13 @@ describe('filterRoutes', () => {
     expect(ids(filterRoutes(routes, { query: '  כנרת ' }))).toEqual(['a']);
   });
 
+  it('shows routes with the old area name under both Galilee filters', () => {
+    const old = [{ ...routes[2], id: 'old', published: true }];
+    expect(ids(filterRoutes(old, { area: 'גליל עליון' }))).toEqual(['old']);
+    expect(ids(filterRoutes(old, { area: 'גליל תחתון' }))).toEqual(['old']);
+    expect(filterRoutes(old, { area: 'גולן' })).toEqual([]);
+  });
+
   it('filters by collection, area and stop type', () => {
     expect(ids(filterRoutes(routes, { collection: 'kids' }))).toEqual(['b']);
     expect(ids(filterRoutes(routes, { area: 'גליל' }))).toEqual(['a']);

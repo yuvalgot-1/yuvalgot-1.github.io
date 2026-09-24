@@ -21,6 +21,10 @@ create table if not exists public.route_ratings (
   primary key (user_id, route_id)
 );
 
+-- The earlier version created the table without this default, and "if not exists" above
+-- leaves an existing table as it is.
+alter table public.route_ratings alter column user_id set default auth.uid();
+
 alter table public.route_ratings enable row level security;
 
 revoke all on public.route_ratings from anon, authenticated;

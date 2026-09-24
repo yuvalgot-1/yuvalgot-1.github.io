@@ -1,10 +1,10 @@
 import { useState } from 'react';
-import { resendConfirmation, signIn, signUp } from '../lib/accountApi.js';
+import { deleteMyAccount, resendConfirmation, signIn, signUp } from '../lib/accountApi.js';
 import { describeAuthError, isEmailNotConfirmed } from '../lib/authErrors.js';
 import { press } from '../utils/a11y.js';
 import PasswordResetForm from './PasswordResetForm.jsx';
 
-export default function AccountScreen({ session, isCreator, creatorMode, onSignOut, onOpenInstall, onSwitchToCreator, onSwitchToPublic }) {
+export default function AccountScreen({ session, isCreator, creatorMode, onSignOut, onAccountDeleted, onOpenInstall, onSwitchToCreator, onSwitchToPublic }) {
   const [tab, setTab] = useState('signin');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -12,6 +12,9 @@ export default function AccountScreen({ session, isCreator, creatorMode, onSignO
   const [info, setInfo] = useState('');
   const [needsConfirmation, setNeedsConfirmation] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
+  const [deleting, setDeleting] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
 
   function switchTab(next) {
     setTab(next);
@@ -63,6 +66,22 @@ export default function AccountScreen({ session, isCreator, creatorMode, onSignO
     }
   }
 
+  async function handleDelete() {
+    if (deleting) return;
+    setDeleting(true);
+    setDeleteError('');
+    try {
+      await deleteMyAccount();
+      setConfirmDelete(false);
+      onAccountDeleted();
+    } catch (err) {
+      setDeleteError(err?.hint === 'creator'
+        ? 'חשבון יוצר לא נמחק מכאן. פנו למפעילי האתר.'
+        : 'המחיקה נכשלה. בדקו את החיבור ונסו שוב.');
+    }
+    setDeleting(false);
+  }
+
   return (
     <div className="builder">
       <div className="builder__heading">
@@ -89,6 +108,33 @@ export default function AccountScreen({ session, isCreator, creatorMode, onSignO
           >
             התנתקות
           </button>
+
+          <div className="account-danger">
+            {isCreator ? (
+              <span className="account-danger__text">
+                חשבון יוצר, והמסלולים שלו, נמחקים דרך מפעילי האתר. פנו אליהם אם תרצו למחוק את החשבון.
+              </span>
+            ) : !confirmDelete ? (
+              <span className="link-action account-danger__link" {...press(() => setConfirmDelete(true))}>
+                מחיקת החשבון
+              </span>
+            ) : (
+              <>
+                <span className="account-danger__title">למחוק את החשבון לצמיתות?</span>
+                <span className="account-danger__text">
+                  החשבון, המסלולים ששמרתם בחשבון והדירוגים שנתתם יימחקו ולא יהיה אפשר לשחזר אותם.
+                  אפשר להירשם מחדש בכל עת.
+                </span>
+                {deleteError && <span role="alert" style={{ fontSize: 13, color: '#A4503C' }}>{deleteError}</span>}
+                <button type="button" className="publish-btn account-danger__btn" onClick={handleDelete} disabled={deleting}>
+                  {deleting ? 'מוחק...' : 'כן, למחוק את החשבון'}
+                </button>
+                <span className="link-action" style={{ textAlign: 'center' }} {...press(() => { setConfirmDelete(false); setDeleteError(''); })}>
+                  ביטול
+                </span>
+              </>
+            )}
+          </div>
         </div>
       ) : tab === 'reset' ? (
         <PasswordResetForm initialEmail={email} onBack={() => switchTab('signin')} />

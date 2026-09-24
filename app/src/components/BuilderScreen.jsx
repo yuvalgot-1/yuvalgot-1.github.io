@@ -114,6 +114,9 @@ export default function BuilderScreen({
               onUploaded={draft.editingId ? onCoverUploaded : undefined}
             />
           </div>
+          <span className="builder__hint">
+            תמונה מגוגל פוטוס: פתחו אותה באפליקציה, שיתוף ← העתקה, ואז "הדבקת תמונה" כאן.
+          </span>
         </div>
         <label className="field">
           <span className="field__label">משך</span>

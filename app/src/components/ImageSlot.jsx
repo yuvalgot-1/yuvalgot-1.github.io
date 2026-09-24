@@ -22,6 +22,7 @@ export default function ImageSlot({ id, placeholder, className, height, editable
   const [tooLarge, setTooLarge] = useState(false);
   const [uploadError, setUploadError] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [pasteError, setPasteError] = useState('');
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -38,6 +39,7 @@ export default function ImageSlot({ id, placeholder, className, height, editable
     }
     setTooLarge(false);
     setUploadError(false);
+    setPasteError('');
     setUploading(true);
     const toUpload = await resizeImage(file);
     const { error } = await supabase.storage.from(BUCKET).upload(id, toUpload, {
@@ -55,6 +57,30 @@ export default function ImageSlot({ id, placeholder, className, height, editable
     onUploaded?.();
   }
 
+  // Google Photos on iPhone can't be reached from the file picker, but its Share -> Copy
+  // puts the photo on the clipboard, and this reads it from there.
+  async function pasteFromClipboard(e) {
+    e.stopPropagation();
+    setPasteError('');
+    if (!navigator.clipboard?.read) {
+      setPasteError('הדפדפן לא מאפשר הדבקה. שמרו את התמונה למכשיר ובחרו אותה מהגלריה.');
+      return;
+    }
+    try {
+      for (const item of await navigator.clipboard.read()) {
+        const type = item.types.find((t) => t.startsWith('image/'));
+        if (type) {
+          const blob = await item.getType(type);
+          handleFile(new File([blob], 'pasted.' + type.split('/')[1], { type }));
+          return;
+        }
+      }
+      setPasteError('אין תמונה בהעתקה. בגוגל פוטוס: שיתוף ← העתקה, ואז הדביקו כאן.');
+    } catch {
+      setPasteError('לא הצלחנו לקרוא את ההעתקה. נסו שוב ואשרו "הדבקה".');
+    }
+  }
+
   const showImage = !broken;
 
   return (
@@ -65,6 +91,11 @@ export default function ImageSlot({ id, placeholder, className, height, editable
       {...press(editable ? () => inputRef.current?.click() : undefined)}
       onDragOver={(e) => { if (editable) { e.preventDefault(); setDragOver(true); } }}
       onDragLeave={() => setDragOver(false)}
+      onPaste={(e) => {
+        if (!editable) return;
+        const file = [...(e.clipboardData?.files || [])].find((f) => f.type.startsWith('image/'));
+        if (file) { e.preventDefault(); handleFile(file); }
+      }}
       onDrop={(e) => {
         if (!editable) return;
         e.preventDefault();
@@ -103,9 +134,14 @@ export default function ImageSlot({ id, placeholder, className, height, editable
                 ? 'ההעלאה נכשלה, נסו שוב'
                 : uploading
                   ? 'מעלה תמונה...'
-                  : (editable ? placeholder : '')}
+                  : pasteError || (editable ? placeholder : '')}
           </span>
         </div>
+      )}
+      {editable && !uploading && (
+        <button type="button" className="image-slot__paste" onClick={pasteFromClipboard}>
+          הדבקת תמונה
+        </button>
       )}
     </div>
   );

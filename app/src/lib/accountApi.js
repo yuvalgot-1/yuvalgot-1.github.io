@@ -48,6 +48,15 @@ export async function requestPasswordReset(email) {
   return supabase.auth.resetPasswordForEmail(email, { redirectTo: siteUrl() });
 }
 
+// Deletes the signed-in visitor's account with its saved routes and ratings.
+// The server refuses creator accounts (error hint 'creator').
+export async function deleteMyAccount() {
+  const { error } = await supabase.rpc('delete_my_account');
+  if (error) throw error;
+  // the session no longer exists on the server, so only clear it locally
+  await supabase.auth.signOut({ scope: 'local' });
+}
+
 export async function updatePassword(password) {
   return supabase.auth.updateUser({ password });
 }

@@ -218,6 +218,14 @@ export default function App() {
     setScreen('feed');
   }
 
+  // the server already removed the account and its saved routes and ratings
+  function accountDeleted() {
+    setSaved({});
+    loadRatings();
+    setToast('החשבון נמחק');
+    setTimeout(() => setToast(''), 2400);
+  }
+
   function openProfile(ownerId) {
     setProfileId(ownerId);
     setScreen('profile');
@@ -264,16 +272,16 @@ export default function App() {
   }
 
   async function rate(routeId, rating) {
-    const previous = myRatings[routeId];
-    setMyRatings((m) => ({ ...m, [routeId]: rating }));
     try {
-      await rateRoute(routeId, rating);
+      await rateRoute(userId, routeId, rating);
+      setMyRatings((m) => ({ ...m, [routeId]: rating }));
       loadRatings();
-    } catch {
-      setMyRatings((m) => ({ ...m, [routeId]: previous }));
+      setToast('תודה! הדירוג נשמר');
+    } catch (err) {
+      console.error('rating failed', err);
       setToast('שמירת הדירוג נכשלה');
-      setTimeout(() => setToast(''), 1800);
     }
+    setTimeout(() => setToast(''), 1800);
   }
 
   async function togglePublish(id) {
@@ -564,6 +572,7 @@ export default function App() {
               isCreator={!!creatorName}
               creatorMode={isCreator}
               onSignOut={isCreator ? logout : signOut}
+              onAccountDeleted={accountDeleted}
               onOpenInstall={() => setScreen('install')}
               onSwitchToCreator={() => { setMode('creator'); setScreen('mine'); }}
               onSwitchToPublic={() => { setMode('public'); setScreen('feed'); }}

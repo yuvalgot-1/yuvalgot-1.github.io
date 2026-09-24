@@ -17,9 +17,10 @@ export async function fetchMyRatings() {
   return Object.fromEntries(data.map((r) => [r.route_id, r.rating]));
 }
 
-export async function rateRoute(routeId, rating) {
+// user_id is sent explicitly: the table was first created without a default for it.
+export async function rateRoute(userId, routeId, rating) {
   const { error } = await supabase
     .from('route_ratings')
-    .upsert({ route_id: routeId, rating, updated_at: new Date().toISOString() }, { onConflict: 'user_id,route_id' });
+    .upsert({ user_id: userId, route_id: routeId, rating, updated_at: new Date().toISOString() }, { onConflict: 'user_id,route_id' });
   if (error) throw error;
 }
