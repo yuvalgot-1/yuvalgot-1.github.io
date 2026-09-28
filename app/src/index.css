@@ -1118,6 +1118,12 @@ a:focus-visible {
   pointer-events: none;
 }
 
+/* the detail cover's back button occupies the top-right corner */
+.detail-cover .editors-pick-badge {
+  right: auto;
+  left: 12px;
+}
+
 .editors-pick-toggle {
   display: flex;
   align-items: center;
