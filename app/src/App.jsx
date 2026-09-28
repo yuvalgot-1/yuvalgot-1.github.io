@@ -296,6 +296,18 @@ export default function App() {
     }
   }
 
+  async function toggleFeatured(id) {
+    const route = routes.find((r) => r.id === id);
+    if (!route) return;
+    try {
+      await updateRoute(id, { is_featured: !route.is_featured });
+      await loadRoutes();
+    } catch {
+      setToast('העדכון נכשל');
+      setTimeout(() => setToast(''), 1800);
+    }
+  }
+
   async function deleteRouteHandler(id) {
     const route = routes.find((r) => r.id === id);
     if (!route) return;
@@ -608,6 +620,7 @@ export default function App() {
               myRating={myRatings[openRouteData.id] || 0}
               onRate={(n) => rate(openRouteData.id, n)}
               onOpenAccount={() => navigate('account')}
+              onToggleFeatured={() => toggleFeatured(openRouteData.id)}
               onCoverUploaded={() => markCoverUploaded(openRouteData.id)}
               onStopImageUploaded={(i) => markStopImageUploaded(openRouteData.id, i)}
             />

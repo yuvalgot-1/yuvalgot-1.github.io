@@ -5,7 +5,7 @@ import { stopImagePath } from '../utils/url.js';
 import { press } from '../utils/a11y.js';
 import RatePanel from './RatePanel.jsx';
 
-export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenProfile, onBack, onShare, editable, signedIn, isOwner, myRating, onRate, onOpenAccount, onCoverUploaded, onStopImageUploaded }) {
+export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenProfile, onBack, onShare, editable, signedIn, isOwner, myRating, onRate, onOpenAccount, onCoverUploaded, onStopImageUploaded, onToggleFeatured }) {
   const facts = [
     { value: route.duration.split(' · ')[1] || route.duration, label: 'משך המסלול' },
     { value: route.stops.length, label: 'תחנות' },
@@ -24,6 +24,7 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
         />
         <div className="detail-cover__scrim" />
         <button className="detail-cover__back" onClick={onBack}>›</button>
+        {route.is_featured && <span className="editors-pick-badge">✦ בחירת העורכים</span>}
         <div className="detail-cover__text">
           <span className="detail-cover__area">{route.area}</span>
           <span className="detail-cover__title">{route.title}</span>
@@ -105,6 +106,16 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
         </div>
 
         <RatePanel signedIn={signedIn} isOwner={isOwner} myRating={myRating} onRate={onRate} onOpenAccount={onOpenAccount} />
+
+        {editable && (
+          <div
+            className={'editors-pick-toggle' + (route.is_featured ? ' editors-pick-toggle--active' : '')}
+            {...press(onToggleFeatured)}
+          >
+            <span>✦</span>
+            <span>{route.is_featured ? 'מסומן כבחירת העורכים' : 'סימון כבחירת העורכים'}</span>
+          </div>
+        )}
 
         <div className="detail-actions">
           <div className="btn-primary" {...press(() => onToggleSave(route.id))}>

@@ -1104,6 +1104,42 @@ a:focus-visible {
 .rating-summary--badge .rating-summary__star { color: #F0C15A; }
 .rating-summary__star { color: #C98A1B; font-size: 13px; }
 
+.editors-pick-badge {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  background: rgba(240, 193, 90, .92);
+  color: var(--bg-header);
+  font-size: 12.5px;
+  font-weight: 700;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.editors-pick-toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  align-self: flex-start;
+  cursor: pointer;
+  padding: 7px 12px;
+  border-radius: 999px;
+  min-height: 36px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--save-inactive-bg);
+  border: 1px solid var(--border-nav);
+  color: var(--text-muted);
+}
+
+.editors-pick-toggle--active {
+  background: rgba(240, 193, 90, .92);
+  border-color: rgba(240, 193, 90, .92);
+  color: var(--bg-header);
+}
+
 .rate-panel {
   display: flex;
   flex-direction: column;

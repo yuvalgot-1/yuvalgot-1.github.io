@@ -16,6 +16,7 @@ export default function RouteCard({ route, saved, onOpen, onToggleSave, onOpenPr
         <ImageSlot id={'cover-' + route.id} placeholder={'תמונת שער · ' + route.area} known={!!route.has_cover} />
         <div className="route-card__scrim" />
         <RatingSummary className="rating-summary--badge" avg={route.rating_avg} count={route.rating_count} />
+        {route.is_featured && <span className="editors-pick-badge">✦ בחירת העורכים</span>}
         <div className="route-card__cover-text">
           <span className="route-card__title">{route.title}</span>
           <span className="route-card__chain">{route.stops.map((s) => s.name).join(' ← ')}</span>
