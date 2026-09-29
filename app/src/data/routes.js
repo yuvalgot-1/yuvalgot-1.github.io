@@ -13,7 +13,7 @@ export const COLLECTIONS = [
   { id: 'all', label: 'הכול' },
   { id: 'day', label: 'טיולי יום' },
   { id: 'kids', label: 'עם ילדים' },
-  { id: 'water', label: 'ליד המים' },
+  { id: 'water', label: 'במים' },
   { id: 'rain', label: 'יום גשום' },
 ];
 
