@@ -423,7 +423,7 @@ export default function App() {
       } else {
         const id = routeId;
         await insertRoute({ id, blurb: '', published: true, author: creatorName, ...routeFields });
-        const { error: moveError } = await supabase.storage.from('route-images').move('draft-cover', 'cover-' + id);
+        const { error: moveError } = await supabase.storage.from('route-images').move('draft-cover-' + userId, 'cover-' + id);
         if (!moveError) {
           await updateRoute(id, { has_cover: true });
         }
@@ -645,6 +645,7 @@ export default function App() {
             creatorReady ? (
               <BuilderScreen
                 draft={draft}
+                userId={userId}
                 onTitleChange={(title) => setDraft((d) => ({ ...d, title }))}
                 onAreaChange={(area) => setDraft((d) => ({ ...d, area }))}
                 onDurationChange={(duration) => setDraft((d) => ({ ...d, duration }))}

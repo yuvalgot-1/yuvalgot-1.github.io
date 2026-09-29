@@ -22,6 +22,7 @@ const DRAFT_COLLECTIONS = COLLECTIONS.filter((c) => c.id !== 'all');
 
 export default function BuilderScreen({
   draft,
+  userId,
   onTitleChange,
   onAreaChange,
   onDurationChange,
@@ -108,7 +109,7 @@ export default function BuilderScreen({
           <span className="field__label">תמונת שער</span>
           <div className="cover-slot">
             <ImageSlot
-              id={draft.editingId ? 'cover-' + draft.editingId : 'draft-cover'}
+              id={draft.editingId ? 'cover-' + draft.editingId : 'draft-cover-' + userId}
               placeholder="גררו תמונה מהטיול" aria-label="גררו תמונה מהטיול"
               editable
               onUploaded={draft.editingId ? onCoverUploaded : undefined}
