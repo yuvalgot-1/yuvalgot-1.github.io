@@ -46,7 +46,7 @@ export default function RouteCard({ route, saved, onOpen, onToggleSave, onOpenPr
             {...press(onOpenProfile ? (e) => { e.stopPropagation(); onOpenProfile(route.owner_id); } : undefined)}
           >
             <span className="route-card__initials">{route.author.slice(0, 1)}</span>
-            <span>{route.author}</span>
+            <span>מאת {route.author}</span>
           </div>
           <div
             className={'save-btn' + (saved ? ' save-btn--active' : '')}
