@@ -252,7 +252,8 @@ button, input, textarea { font-family: inherit; }
 .app-body {
   flex: 1 1 auto;
   overflow-y: auto;
-  padding: 0 0 96px;
+  /* room for the fixed bottom nav, so the last item isn't hidden under it */
+  padding: 0 0 calc(150px + env(safe-area-inset-bottom));
 }
 
 .feed {
@@ -630,7 +631,7 @@ button, input, textarea { font-family: inherit; }
 
 .toast {
   position: fixed;
-  bottom: 110px;
+  bottom: calc(140px + env(safe-area-inset-bottom));
   left: 50%;
   transform: translateX(-50%);
   background: var(--bg-header);
@@ -820,16 +821,22 @@ button, input, textarea { font-family: inherit; }
 
 /* ---------- Bottom nav ---------- */
 
+/* pinned to the bottom of the screen so the tabs stay reachable while scrolling.
+   fixed (not sticky): .app-shell clips its overflow, which stops sticky from following the page. */
 .bottom-nav {
-  position: sticky;
+  position: fixed;
   bottom: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 430px;
+  z-index: 15;
   background: rgba(247, 245, 239, .97);
   border-top: 1px solid var(--border-nav);
   display: flex;
   flex-direction: column;
   gap: 4px;
-  padding: 8px 10px 10px;
-  flex: 0 0 auto;
+  padding: 8px 10px calc(10px + env(safe-area-inset-bottom));
   backdrop-filter: blur(8px);
 }
 
