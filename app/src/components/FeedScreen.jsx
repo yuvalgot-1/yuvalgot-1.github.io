@@ -11,7 +11,7 @@ export default function FeedScreen({ title, count, routes, saved, onOpen, onTogg
 
       <div className="human-note">
         <span className="human-note__icon" aria-hidden="true">✍️</span>
-        <span>כל מסלול כאן נכתב על ידי מטייל/ת אמיתי/ת שעשו אותו בעצמם, לא על ידי בינה מלאכותית.</span>
+        <span>כל המסלולים נכתבו על ידי מטיילים אמיתיים ולא על ידי בינה מלאכותית</span>
       </div>
 
       {routes.map((r) => (

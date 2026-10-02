@@ -45,7 +45,7 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
           <span className="route-card__initials">{route.author.slice(0, 1)}</span>
           <span>מאת <b>{route.author}</b> · כל המסלולים ›</span>
         </div>
-        <span className="human-note human-note--inline">✍️ נכתב מניסיון אישי של מטייל/ת אמיתי/ת, לא על ידי AI</span>
+        <span className="human-note human-note--inline">✍️ המסלול נכתב על ידי מטייל אמיתי ולא על ידי בינה מלאכותית</span>
         {route.blurb && <p className="detail-blurb">{route.blurb}</p>}
 
         <a className="route-nav" href={routeDirectionsUrl(route)} target="_blank" rel="noopener noreferrer">
