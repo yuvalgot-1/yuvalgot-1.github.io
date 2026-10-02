@@ -272,6 +272,19 @@ button, input, textarea { font-family: inherit; }
 .feed__title { font-size: 15px; font-weight: 700; color: var(--text-dark); }
 .feed__count { font-size: 12px; color: var(--text-faint); }
 
+.human-note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  border-radius: 12px;
+  background: var(--accent-soft);
+  color: var(--link);
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+.human-note__icon { font-size: 15px; }
+
 .feed__empty {
   padding: 40px 20px;
   text-align: center;

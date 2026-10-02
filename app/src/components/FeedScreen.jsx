@@ -9,6 +9,11 @@ export default function FeedScreen({ title, count, routes, saved, onOpen, onTogg
         <span className="feed__count">{count} מסלולים</span>
       </div>
 
+      <div className="human-note">
+        <span className="human-note__icon" aria-hidden="true">✍️</span>
+        <span>כל המסלולים נכתבו על ידי מטיילים אמיתיים ולא על ידי בינה מלאכותית</span>
+      </div>
+
       {routes.map((r) => (
         <RouteCard key={r.id} route={r} saved={!!saved[r.id]} onOpen={onOpen} onToggleSave={onToggleSave} onOpenProfile={onOpenProfile} />
       ))}
