@@ -1,10 +1,10 @@
 import { press } from '../utils/a11y.js';
 
-export default function OnboardingModal({ onDismiss, onOpenTerms, onOpenPrivacy }) {
+export default function OnboardingModal({ onAccept, onOpenTerms }) {
   return (
-    <div className="onboarding-overlay">
+    <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
       <div className="onboarding-card">
-        <span className="onboarding-title">ברוכים הבאים ל־מיטיבי לסת 👋</span>
+        <span className="onboarding-title" id="onboarding-title">ברוכים הבאים ל־מיטיבי לסת 👋</span>
         <ul className="onboarding-list">
           <li>כאן תמצאו מסלולי טיול שלמים — מהטבע ועד לארוחה, לא רק נקודה על המפה.</li>
           <li>כל המסלולים נכתבו על ידי מטיילים אמיתיים ולא על ידי בינה מלאכותית.</li>
@@ -12,13 +12,11 @@ export default function OnboardingModal({ onDismiss, onOpenTerms, onOpenPrivacy 
           <li>לחצו ♡ כדי לשמור מסלול למסך "שמורים" — השמירות נשמרות במכשיר הזה, ועם חשבון גם בכל המכשירים שלכם.</li>
         </ul>
         <span style={{ fontSize: 12.5, color: 'var(--text-faint)', textAlign: 'center' }}>
-          בלחיצה על "מסכימ/ה, בואו נתחיל" אתם מאשרים שקראתם ומסכימים ל
-          <span className="link-action" {...press(onOpenTerms)}>תנאי השימוש</span>
-          {' '}ול
-          <span className="link-action" {...press(onOpenPrivacy)}>מדיניות הפרטיות</span>.
-          ללא הסכמה לא ניתן להשתמש באתר.
+          השימוש באתר מותנה בהסכמה ל
+          <span className="link-action" {...press(onOpenTerms)}>תנאי השימוש והפרטיות</span>.
+          בלחיצה על "מסכימ/ה, בואו נתחיל" אתם מאשרים שקראתם ומסכימים להם.
         </span>
-        <div className="publish-btn" style={{ background: 'var(--bg-header)' }} {...press(onDismiss)}>
+        <div className="publish-btn" style={{ background: 'var(--bg-header)' }} {...press(onAccept)}>
           מסכימ/ה, בואו נתחיל
         </div>
       </div>

@@ -1,2 +1,2 @@
-// Shown in the terms of use and the privacy policy.
+// Shown in the terms of use (which include the privacy policy).
 export const CONTACT_EMAIL = 'ygwtlyb@gmail.com';
