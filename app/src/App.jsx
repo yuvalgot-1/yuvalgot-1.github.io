@@ -24,6 +24,7 @@ import OnboardingModal from './components/OnboardingModal.jsx';
 const MyRoutesScreen = lazy(() => import('./components/MyRoutesScreen.jsx'));
 const BuilderScreen = lazy(() => import('./components/BuilderScreen.jsx'));
 const TermsScreen = lazy(() => import('./components/TermsScreen.jsx'));
+const PrivacyScreen = lazy(() => import('./components/PrivacyScreen.jsx'));
 
 const ROUTE_HASH = /^#\/route\/(.+)$/;
 
@@ -258,6 +259,10 @@ export default function App() {
 
   function openTerms() {
     setScreen('terms');
+  }
+
+  function openPrivacy() {
+    setScreen('privacy');
   }
 
   function toggleSave(id) {
@@ -563,7 +568,9 @@ export default function App() {
             />
           )}
 
-          {screen === 'terms' && <TermsScreen onBack={() => setScreen('feed')} />}
+          {screen === 'terms' && <TermsScreen onBack={() => setScreen('feed')} onOpenPrivacy={openPrivacy} />}
+
+          {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('feed')} />}
 
           {screen === 'guide' && (
             <GuideScreen onBack={() => setScreen('feed')} onOpenInstall={() => setScreen('install')} />
@@ -669,10 +676,11 @@ export default function App() {
 
         {toast && <div className="toast">{toast}</div>}
 
-        {!isCreator && !onboardingSeen && screen !== 'terms' && (
+        {!isCreator && !onboardingSeen && screen !== 'terms' && screen !== 'privacy' && (
           <OnboardingModal
             onDismiss={() => setOnboardingSeen(true)}
             onOpenTerms={openTerms}
+            onOpenPrivacy={openPrivacy}
           />
         )}
       </div>

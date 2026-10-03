@@ -1,6 +1,6 @@
 import { press } from '../utils/a11y.js';
 
-export default function OnboardingModal({ onDismiss, onOpenTerms }) {
+export default function OnboardingModal({ onDismiss, onOpenTerms, onOpenPrivacy }) {
   return (
     <div className="onboarding-overlay">
       <div className="onboarding-card">
@@ -13,7 +13,9 @@ export default function OnboardingModal({ onDismiss, onOpenTerms }) {
         </ul>
         <span style={{ fontSize: 12.5, color: 'var(--text-faint)', textAlign: 'center' }}>
           בלחיצה על "מסכימ/ה, בואו נתחיל" אתם מאשרים שקראתם ומסכימים ל
-          <span className="link-action" {...press(onOpenTerms)}>תנאי השימוש</span>.
+          <span className="link-action" {...press(onOpenTerms)}>תנאי השימוש</span>
+          {' '}ול
+          <span className="link-action" {...press(onOpenPrivacy)}>מדיניות הפרטיות</span>.
           ללא הסכמה לא ניתן להשתמש באתר.
         </span>
         <div className="publish-btn" style={{ background: 'var(--bg-header)' }} {...press(onDismiss)}>
