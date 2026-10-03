@@ -1,13 +1,24 @@
+import { useEffect, useRef } from 'react';
 import { press } from '../utils/a11y.js';
 import { CONTACT_EMAIL } from '../data/contact.js';
 
-export default function TermsScreen({ onBack, onOpenPrivacy }) {
+const P_FIRST = { margin: '6px 0 0' };
+const P_NEXT = { margin: '10px 0 0' };
+
+// The terms of use and the privacy policy are one document, accepted together on entry.
+export default function TermsScreen({ onBack, backLabel = 'חזרה', scrollToPrivacy = false, onAccept }) {
+  const privacyRef = useRef(null);
+
+  useEffect(() => {
+    if (scrollToPrivacy) privacyRef.current?.scrollIntoView({ block: 'start' });
+  }, [scrollToPrivacy]);
+
   return (
     <div className="builder">
       <div className="builder__heading">
-        <span className="builder__title">תנאי שימוש</span>
+        <span className="builder__title">תנאי שימוש ופרטיות</span>
         <span className="link-action" style={{ marginTop: 6 }} {...press(onBack)}>
-          חזרה
+          {backLabel}
         </span>
       </div>
 
@@ -16,24 +27,24 @@ export default function TermsScreen({ onBack, onOpenPrivacy }) {
           <p className="detail-blurb" style={{ margin: 0 }}>
             ברוכים הבאים ל"מיטיבי לסת", אתר המלצות למסלולי טיול (להלן: "האתר"). האתר
             מיועד לשימוש אישי ולא מסחרי בלבד. השימוש באתר כפוף לתנאים המפורטים
-            להלן, ועצם הגלישה בו מהווה את הסכמתך לתנאים אלו.
+            להלן, כולל מדיניות הפרטיות שבסעיף 3, ומותנה באישורם בכניסה לאתר.
           </p>
         </section>
 
         <section>
           <span className="add-stop__title">1. היעדר אחריות על תוכן ומסלולי טיול</span>
-          <p className="detail-blurb" style={{ margin: '6px 0 0' }}>
+          <p className="detail-blurb" style={P_FIRST}>
             המידע והמסלולים באתר מוגשים כמו שהם ובגדר המלצה בלבד. הפרטים במסלולים
             (לרבות תוואי השטח, שעות פתיחה, מחירים ונגישות) עשויים להשתנות ואינם
             מעודכנים בהכרח.
           </p>
-          <p className="detail-blurb" style={{ margin: '10px 0 0' }}>
+          <p className="detail-blurb" style={P_NEXT}>
             היציאה למסלולים ולאתרים המומלצים היא על אחריותו הבלעדית של המשתמש.
             מפעילי האתר לא יישאו בכל אחריות לכל נזק, ישיר או עקיף, נזק גוף, רכוש,
             פציעה או חלילה מוות, שייגרמו כתוצאה מהסתמכות על המידע המופיע באתר,
             טעויות בניווט, שינויים בתנאי השטח או פגעי מזג אוויר.
           </p>
-          <p className="detail-blurb" style={{ margin: '10px 0 0' }}>
+          <p className="detail-blurb" style={P_NEXT}>
             על המטייל לוודא את התנאים בשטח, להצטייד בציוד ומים בהתאם לנדרש, ולהפעיל
             שיקול דעת עצמאי.
           </p>
@@ -41,14 +52,14 @@ export default function TermsScreen({ onBack, onOpenPrivacy }) {
 
         <section>
           <span className="add-stop__title">2. המלצות קולינריות ומזון</span>
-          <p className="detail-blurb" style={{ margin: '6px 0 0' }}>
+          <p className="detail-blurb" style={P_FIRST}>
             היות והאתר משלב המלצות בתחומי המזון והקולינריה, מובהר בזאת כי מפעילי
             האתר אינם נושאים באחריות לאיכות המזון המוגש בבתי העסק, עמידה בתקני
             היגיינה, תעודות כשרות או שינויים ברכיבי המנות. האחריות על בירור אלרגיות,
             רגישויות וסוגיות תזונתיות מוטלת על המשתמש בלבד, ויש לבדוק זאת ישירות
             מול בית העסק טרם צריכת המזון.
           </p>
-          <p className="detail-blurb" style={{ margin: '10px 0 0' }}>
+          <p className="detail-blurb" style={P_NEXT}>
             <b>שקיפות:</b> מפעילי האתר אינם מקבלים תשלום, הנחה, ארוחה חינם או כל טובת
             הנאה אחרת מבתי עסק תמורת הכללתם במסלול או המלצה עליהם, והאתר אינו מפרסם
             תוכן ממומן. יוצרי המסלולים מתבקשים להמליץ רק על מקומות שאין להם בהם עניין
@@ -56,18 +67,68 @@ export default function TermsScreen({ onBack, onOpenPrivacy }) {
           </p>
         </section>
 
-        <section>
+        <section ref={privacyRef} style={{ scrollMarginTop: 16 }}>
           <span className="add-stop__title">3. פרטיות</span>
-          <p className="detail-blurb" style={{ margin: '6px 0 0' }}>
-            איזה מידע נשמר, איפה, ואיך מוחקים אותו מפורט ב
-            <span className="link-action" style={{ fontSize: 'inherit' }} {...press(onOpenPrivacy)}>מדיניות הפרטיות</span>,
-            שהיא חלק מתנאי שימוש אלו.
+          <p className="detail-blurb" style={P_FIRST}>
+            אנחנו אוספים כמה שפחות מידע. גלישה באתר אינה מצריכה מסירת פרטים אישיים,
+            ופרטים מזהים נשמרים רק אצל מי שבחר ליצור חשבון. אין באתר פרסומות, כלי
+            מעקב או עוגיות פרסום, ואיננו מוכרים או מעבירים מידע לאף גורם לצורכי
+            שיווק.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            <b>3.1 מידע שנשמר במכשיר שלכם:</b> המסלולים ששמרתם (♡), טיוטת מסלול
+            שבעבודה והאישור שלכם לתנאים אלו נשמרים באחסון המקומי של הדפדפן (Local
+            Storage). מי שמחובר לחשבון, גם פרטי ההתחברות שלו נשמרים שם כדי שלא יצטרך
+            להתחבר מחדש. האתר שומר בנוסף עותק של דפים ותמונות שכבר נצפו, כדי שיעבדו
+            גם בלי חיבור לאינטרנט. המידע הזה לא נשלח אלינו, ואפשר למחוק אותו בכל עת
+            דרך הגדרות הדפדפן.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            <b>3.2 מידע שנשמר בשרת:</b> למי שנרשם, כתובת האימייל והמסלולים ששמר (♡)
+            נשמרים בשרת כדי שיהיו זמינים בכל מכשיר. הסיסמה נשמרת מוצפנת ואיננו יכולים
+            לראות אותה. אין חובה להירשם כדי להשתמש באתר.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            <b>דירוגים:</b> רק משתמש רשום יכול לדרג מסלול (1 עד 5 כוכבים), פעם אחת
+            לכל מסלול, ואפשר לשנות את הדירוג. הדירוג נשמר מקושר לחשבון כדי למנוע
+            דירוג כפול. באתר מוצגים רק הציון הממוצע ומספר המדרגים, ולא זהות המדרגים.
+            הציון משקף את דעת המדרגים בלבד, ואינו מהווה אישור של מפעילי האתר לאיכות
+            המסלול או לבטיחותו.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            <b>יוצרי מסלולים:</b> השם שיוצר בחר, המסלולים שכתב והתמונות שהעלה מוצגים
+            לכל מבקר באתר.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            <b>3.3 ספקי שירות:</b> האתר מאוחסן ב־GitHub Pages. החשבונות, המסלולים,
+            הדירוגים והתמונות נשמרים ב־Supabase, שירות מסד נתונים בענן, ששרתיו עשויים
+            להימצא מחוץ לישראל. כחלק מפעילותם התקינה, ספקים אלו עשויים לאסוף נתונים
+            טכניים (כגון כתובת IP וזמני גישה), בכפוף למדיניות הפרטיות שלהם. קישורי
+            "גוגל מפות" ו־"Waze" פותחים את השירותים האלה רק כשלוחצים עליהם, ומאותו
+            רגע חלה מדיניות הפרטיות שלהם.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            <b>3.4 מחיקת חשבון:</b> כל משתמש רשום יכול למחוק את חשבונו בעצמו, בכל עת,
+            ממסך "החשבון שלי" (בלחיצה על "מחיקת החשבון" ואישור). המחיקה מיידית
+            וסופית: כתובת האימייל, המסלולים ששמר בחשבון והדירוגים שנתן נמחקים מהשרת
+            ואי אפשר לשחזר אותם, והציון הממוצע של המסלולים מתעדכן בהתאם. רשימת
+            המסלולים השמורים נמחקת גם מהמכשיר שממנו נמחק החשבון. אפשר להירשם מחדש
+            בכל עת, כחשבון חדש.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            חשבונות של יוצרי מסלולים אינם נמחקים דרך האתר, כדי שמסלולים שפורסמו לא
+            ייעלמו בטעות. יוצר המעוניין למחוק את חשבונו ואת המסלולים שלו מוזמן לפנות
+            אלינו בכתובת שבסעיף 7, והמחיקה תתבצע על ידינו.
+          </p>
+          <p className="detail-blurb" style={P_NEXT}>
+            <b>3.5 הזכויות שלכם:</b> בהתאם לחוק הגנת הפרטיות, אתם רשאים לבקש לעיין
+            במידע שנשמר עליכם, לתקן אותו או למחוק אותו, בפנייה לכתובת שבסעיף 7.
           </p>
         </section>
 
         <section>
           <span className="add-stop__title">4. תוכן, קניין רוחני וזכויות יוצרים</span>
-          <p className="detail-blurb" style={{ margin: '6px 0 0' }}>
+          <p className="detail-blurb" style={P_FIRST}>
             המסלולים, הטקסטים והתמונות נכתבים על ידי יוצרי מסלולים, מטיילים שמפעילי
             האתר אישרו להם לפרסם, ומשקפים את דעתם וניסיונם האישיים. העיצוב והמבנה של
             האתר שייכים למפעילי האתר. אין להעתיק, לשכפל או להשתמש בתוכן למטרות
@@ -75,7 +136,7 @@ export default function TermsScreen({ onBack, onOpenPrivacy }) {
             מוזמן לפנות אלינו, והתוכן ייבדק ובמידת הצורך יוסר. שימוש במפות חיצוניות המשובצות באתר כפוף לתנאי השימוש וזכויות
             היוצרים של ספקיות המפות.
           </p>
-          <p className="detail-blurb" style={{ margin: '10px 0 0' }}>
+          <p className="detail-blurb" style={P_NEXT}>
             לגבי המפה המוצגת בעמוד המסלול עצמו: זו איור להמחשה בלבד ואינה מפה
             מדויקת. קישורי "פתיחה בגוגל מפות" מובילים לאתר חיצוני שאינו בבעלות האתר
             ואינו באחריותו.
@@ -84,15 +145,16 @@ export default function TermsScreen({ onBack, onOpenPrivacy }) {
 
         <section>
           <span className="add-stop__title">5. שינויים בתנאי השימוש</span>
-          <p className="detail-blurb" style={{ margin: '6px 0 0' }}>
-            מפעילי האתר שומרים לעצמם את הזכות לעדכן את תנאי השימוש מעת לעת. המשך
-            השימוש באתר מהווה הסכמה לתנאים המעודכנים.
+          <p className="detail-blurb" style={P_FIRST}>
+            מפעילי האתר שומרים לעצמם את הזכות לעדכן את תנאי השימוש ומדיניות הפרטיות
+            מעת לעת. הגרסה המעודכנת תפורסם בעמוד זה, ובכניסה הבאה לאתר תתבקשו לאשר
+            אותה מחדש.
           </p>
         </section>
 
         <section>
           <span className="add-stop__title">6. דין וסמכות שיפוט</span>
-          <p className="detail-blurb" style={{ margin: '6px 0 0' }}>
+          <p className="detail-blurb" style={P_FIRST}>
             על תנאי שימוש אלו יחולו דיני מדינת ישראל. סמכות השיפוט הבלעדית בכל
             עניין או סכסוך הנוגע לאתר תהיה נתונה לבתי המשפט המוסמכים במדינת ישראל.
           </p>
@@ -100,11 +162,17 @@ export default function TermsScreen({ onBack, onOpenPrivacy }) {
 
         <section>
           <span className="add-stop__title">7. יצירת קשר</span>
-          <p className="detail-blurb" style={{ margin: '6px 0 0' }}>
-            לכל שאלה, בקשה או דיווח על תוכן אפשר לכתוב לנו
+          <p className="detail-blurb" style={P_FIRST}>
+            לכל שאלה, בקשה בנושא פרטיות או דיווח על תוכן אפשר לכתוב לנו
             ל־<a className="link-action" style={{ fontSize: 'inherit' }} href={'mailto:' + CONTACT_EMAIL} dir="ltr">{CONTACT_EMAIL}</a>.
           </p>
         </section>
+
+        {onAccept && (
+          <div className="publish-btn" style={{ background: 'var(--bg-header)' }} {...press(onAccept)}>
+            קראתי ומסכימ/ה
+          </div>
+        )}
       </div>
     </div>
   );

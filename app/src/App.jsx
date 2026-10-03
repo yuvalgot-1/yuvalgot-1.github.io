@@ -6,6 +6,7 @@ import { fetchRoutes, insertRoute, updateRoute, deleteRoute } from './lib/routes
 import { fetchCreatorName, fetchSavedIds, addSavedRoutes, removeSavedRoute } from './lib/accountApi.js';
 import { fetchRatingStats, fetchMyRatings, rateRoute } from './lib/ratingsApi.js';
 import { COLLECTIONS } from './data/routes.js';
+import { TERMS_VERSION } from './data/terms.js';
 import { filterRoutes, hasActiveFilters } from './utils/filterRoutes.js';
 import Header from './components/Header.jsx';
 import BottomNav from './components/BottomNav.jsx';
@@ -24,7 +25,6 @@ import OnboardingModal from './components/OnboardingModal.jsx';
 const MyRoutesScreen = lazy(() => import('./components/MyRoutesScreen.jsx'));
 const BuilderScreen = lazy(() => import('./components/BuilderScreen.jsx'));
 const TermsScreen = lazy(() => import('./components/TermsScreen.jsx'));
-const PrivacyScreen = lazy(() => import('./components/PrivacyScreen.jsx'));
 
 const ROUTE_HASH = /^#\/route\/(.+)$/;
 
@@ -62,7 +62,9 @@ export default function App() {
   const [saved, setSaved] = useLocalStorageState('saved', {});
   const [mode, setMode] = useLocalStorageState('mode', 'public');
   const [draft, setDraft] = useLocalStorageState('draft', DEFAULT_DRAFT);
-  const [onboardingSeen, setOnboardingSeen] = useLocalStorageState('onboardingSeen', false);
+  // the version of the terms (incl. privacy) this browser accepted; raising TERMS_VERSION asks everyone again
+  const [acceptedTerms, setAcceptedTerms] = useLocalStorageState('termsAccepted', 0);
+  const termsAccepted = acceptedTerms === TERMS_VERSION;
 
   const [screen, setScreen] = useState('feed');
   const [openId, setOpenId] = useState(null);
@@ -72,6 +74,7 @@ export default function App() {
   const [stopCat, setStopCat] = useState('all');
   const [justPublished, setJustPublished] = useState(false);
   const [toast, setToast] = useState('');
+  const [termsAtPrivacy, setTermsAtPrivacy] = useState(false);
 
   const isCreator = mode === 'creator';
   const creatorReady = isCreator && !!session && !!creatorName;
@@ -254,15 +257,19 @@ export default function App() {
   function navigate(id) {
     clearRouteHash();
     if (id === 'saved') { setScreen('saved'); return; }
+    if (id === 'terms' || id === 'privacy') { openTerms(id === 'privacy'); return; }
     setScreen(id);
   }
 
-  function openTerms() {
+  // privacy is a section of the terms; opening it jumps straight there
+  function openTerms(atPrivacy = false) {
+    setTermsAtPrivacy(atPrivacy);
     setScreen('terms');
   }
 
-  function openPrivacy() {
-    setScreen('privacy');
+  function acceptTerms() {
+    setAcceptedTerms(TERMS_VERSION);
+    if (screen === 'terms') setScreen('feed');
   }
 
   function toggleSave(id) {
@@ -568,9 +575,13 @@ export default function App() {
             />
           )}
 
-          {screen === 'terms' && <TermsScreen onBack={() => setScreen('feed')} onOpenPrivacy={openPrivacy} />}
-
-          {screen === 'privacy' && <PrivacyScreen onBack={() => setScreen('feed')} />}
+          {screen === 'terms' && (
+            <TermsScreen
+              onBack={() => setScreen('feed')}
+              scrollToPrivacy={termsAtPrivacy}
+              onAccept={termsAccepted ? null : acceptTerms}
+            />
+          )}
 
           {screen === 'guide' && (
             <GuideScreen onBack={() => setScreen('feed')} onOpenInstall={() => setScreen('install')} />
@@ -672,16 +683,12 @@ export default function App() {
           </Suspense>
         </div>
 
-        <BottomNav mode={mode} screen={screen} onNavigate={navigate} />
+        {(termsAccepted || screen !== 'terms') && <BottomNav mode={mode} screen={screen} onNavigate={navigate} />}
 
         {toast && <div className="toast">{toast}</div>}
 
-        {!isCreator && !onboardingSeen && screen !== 'terms' && screen !== 'privacy' && (
-          <OnboardingModal
-            onDismiss={() => setOnboardingSeen(true)}
-            onOpenTerms={openTerms}
-            onOpenPrivacy={openPrivacy}
-          />
+        {!termsAccepted && screen !== 'terms' && (
+          <OnboardingModal onAccept={acceptTerms} onOpenTerms={() => openTerms()} />
         )}
       </div>
     </div>
