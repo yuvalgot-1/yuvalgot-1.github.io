@@ -40,6 +40,7 @@ export default function BottomNav({ mode, screen, onNavigate }) {
           <span className="link-action" {...press(() => onNavigate('guide'))}>איך משתמשים</span>
           <span className="link-action" {...press(() => onNavigate('install'))}>הוספה למסך הבית</span>
           <span className="link-action" {...press(() => onNavigate('terms'))}>תנאי שימוש</span>
+          <span className="link-action" {...press(() => onNavigate('privacy'))}>פרטיות</span>
         </div>
       )}
     </nav>
