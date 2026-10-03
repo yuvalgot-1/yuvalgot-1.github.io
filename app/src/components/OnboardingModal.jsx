@@ -1,6 +1,15 @@
+import { useEffect } from 'react';
 import { press } from '../utils/a11y.js';
 
 export default function OnboardingModal({ onAccept, onOpenTerms }) {
+  // keep the page behind the window from scrolling while it is open
+  useEffect(() => {
+    const { style } = document.documentElement;
+    const previous = style.overflow;
+    style.overflow = 'hidden';
+    return () => { style.overflow = previous; };
+  }, []);
+
   return (
     <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
       <div className="onboarding-card">

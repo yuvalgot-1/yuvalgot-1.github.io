@@ -615,8 +615,9 @@ button, input, textarea { font-family: inherit; }
 }
 .btn-secondary:hover { background: #F0EEE6; }
 
+/* fixed to the screen, not the page: the feed behind it can be many screens tall */
 .onboarding-overlay {
-  position: absolute;
+  position: fixed;
   inset: 0;
   background: rgba(18, 32, 27, .55);
   display: flex;
@@ -635,6 +636,8 @@ button, input, textarea { font-family: inherit; }
   gap: 16px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
   max-width: 340px;
+  max-height: 100%;
+  overflow-y: auto;
 }
 
 .onboarding-title {
