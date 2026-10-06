@@ -168,7 +168,7 @@ button, input, textarea { font-family: inherit; }
   border: none;
   outline: none;
   background: transparent;
-  font-size: 15px;
+  font-size: 16px; /* under 16px, iPhone zooms the page in when the field is tapped */
   color: var(--text-dark);
   width: 100%;
 }
@@ -753,7 +753,7 @@ button, input, textarea { font-family: inherit; }
   background: var(--bg-input);
   border-radius: 12px;
   padding: 13px 14px;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-dark);
   outline: none;
   min-height: 48px;
@@ -799,11 +799,13 @@ button, input, textarea { font-family: inherit; }
   font-size: 17px;
   cursor: pointer;
   padding: 0 4px;
+  min-width: 36px;
+  min-height: 36px;
   background: none;
   border: none;
 }
 .draft-stop__remove:disabled { opacity: .35; cursor: default; }
-.draft-stop__reorder { flex: 0 0 auto; display: flex; flex-direction: column; gap: 2px; }
+.draft-stop__reorder { flex: 0 0 auto; display: flex; flex-direction: column; }
 .draft-stop__reorder .draft-stop__remove { font-size: 14px; }
 
 .add-stop {
@@ -816,9 +818,12 @@ button, input, textarea { font-family: inherit; }
   gap: 13px;
 }
 .add-stop__title { font-size: 13.5px; font-weight: 700; color: var(--text-dark); }
-.add-stop input { border: 1px solid var(--border-input); background: var(--bg-input); border-radius: 11px; padding: 12px 13px; font-size: 14.5px; outline: none; min-height: 46px; }
+.add-stop input, .add-stop textarea { border: 1px solid var(--border-input); background: var(--bg-input); color: var(--text-dark); border-radius: 11px; padding: 12px 13px; font-size: 16px; outline: none; min-height: 46px; }
+.add-stop textarea { resize: none; }
 .add-stop__row { display: flex; gap: 9px; }
 .add-stop__row input { flex: 1 1 0; min-width: 0; }
+/* on narrow phones two fields side by side cut off their hints */
+@media (max-width: 380px) { .add-stop__row { flex-direction: column; } }
 
 .add-stop__submit {
   background: var(--accent-soft);
@@ -1055,6 +1060,7 @@ a:focus-visible {
 .field input:focus-visible,
 .field textarea:focus-visible,
 .add-stop input:focus-visible,
+.add-stop textarea:focus-visible,
 .search-row input:focus-visible {
   box-shadow: 0 0 0 2px var(--link);
 }

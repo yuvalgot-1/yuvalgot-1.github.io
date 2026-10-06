@@ -176,7 +176,7 @@ export default function BuilderScreen({
                 ↓
               </button>
             </div>
-            <button className="draft-stop__remove" onClick={() => onRemoveStop(i)}>×</button>
+            <button className="draft-stop__remove" onClick={() => onRemoveStop(i)} title="הסרת התחנה" aria-label="הסרת התחנה">×</button>
           </div>
         ))}
 
