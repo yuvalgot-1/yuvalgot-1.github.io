@@ -12,7 +12,7 @@ function publicUrlFor(path) {
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
-export default function ImageSlot({ id, placeholder, className, height, editable, known, onUploaded }) {
+export default function ImageSlot({ id, placeholder, className, height, editable, known, onUploaded, compactPaste }) {
   const skipLoad = known === false;
   const baseUrl = publicUrlFor(id);
   const [src, setSrc] = useState(baseUrl);
@@ -139,9 +139,15 @@ export default function ImageSlot({ id, placeholder, className, height, editable
         </div>
       )}
       {editable && !uploading && (
-        <button type="button" className="image-slot__paste" onClick={pasteFromClipboard}>
-          הדבקת תמונה
-        </button>
+        compactPaste ? (
+          <button type="button" className="image-slot__paste image-slot__paste--icon" onClick={pasteFromClipboard} aria-label="הדבקת תמונה" title="הדבקת תמונה">
+            📋
+          </button>
+        ) : (
+          <button type="button" className="image-slot__paste" onClick={pasteFromClipboard}>
+            הדבקת תמונה
+          </button>
+        )
       )}
     </div>
   );

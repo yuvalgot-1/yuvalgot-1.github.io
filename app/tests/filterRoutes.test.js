@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { filterRoutes, hasActiveFilters } from '../src/utils/filterRoutes.js';
+import { filterRoutes, hasActiveFilters, sortRoutes } from '../src/utils/filterRoutes.js';
 
 const routes = [
   { id: 'a', published: true, title: 'בוקר בכנרת', area: 'גליל תחתון', collections: ['day', 'water'], stops: [{ name: 'חוף דוגית', cat: 'nature' }, { name: 'מסעדת ארבל', cat: 'food' }] },
@@ -58,5 +58,31 @@ describe('hasActiveFilters', () => {
     expect(hasActiveFilters({ collection: 'day' })).toBe(true);
     expect(hasActiveFilters({ area: 'מרכז' })).toBe(true);
     expect(hasActiveFilters({ stopCat: 'view' })).toBe(true);
+  });
+});
+
+describe('sortRoutes', () => {
+  const list = [
+    { id: 'old', created_at: '2026-01-01', rating_avg: 4.5, rating_count: 2 },
+    { id: 'new', created_at: '2026-09-01', rating_avg: null, rating_count: 0 },
+    { id: 'mid', created_at: '2026-05-01', rating_avg: 4.5, rating_count: 9, is_featured: true },
+  ];
+  const ids = (rs) => rs.map((r) => r.id);
+
+  it('puts the newest first by default', () => {
+    expect(ids(sortRoutes(list))).toEqual(['new', 'mid', 'old']);
+  });
+
+  it('sorts by rating, more ratings breaking ties, unrated last', () => {
+    expect(ids(sortRoutes(list, 'rating'))).toEqual(['mid', 'old', 'new']);
+  });
+
+  it("puts editors' picks first, then the newest", () => {
+    expect(ids(sortRoutes(list, 'featured'))).toEqual(['mid', 'new', 'old']);
+  });
+
+  it('does not change the input array', () => {
+    sortRoutes(list, 'rating');
+    expect(ids(list)).toEqual(['old', 'new', 'mid']);
   });
 });
