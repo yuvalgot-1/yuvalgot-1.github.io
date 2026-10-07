@@ -13,12 +13,12 @@ export default function OnboardingModal({ onAccept, onOpenTerms }) {
   return (
     <div className="onboarding-overlay" role="dialog" aria-modal="true" aria-labelledby="onboarding-title">
       <div className="onboarding-card">
-        <span className="onboarding-title" id="onboarding-title">ברוכים הבאים ל־מיטיבי לסת 👋</span>
+        <span className="onboarding-title" id="onboarding-title">ברוכים הבאים ל־מיטיבי לסת 🚶</span>
         <ul className="onboarding-list">
-          <li>כאן תמצאו מסלולי טיול שלמים — מהטבע ועד לארוחה, לא רק נקודה על המפה.</li>
+          <li>כאן תמצאו מסלולי טיול שלמים, מהטבע ועד לארוחה, לא רק נקודה על המפה.</li>
           <li>כל המסלולים נכתבו על ידי מטיילים אמיתיים ולא על ידי בינה מלאכותית.</li>
           <li>חפשו לפי אזור, קטגוריה או חיפוש חופשי.</li>
-          <li>לחצו ♡ כדי לשמור מסלול למסך "שמורים" — השמירות נשמרות במכשיר הזה, ועם חשבון גם בכל המכשירים שלכם.</li>
+          <li>לחצו ♡ כדי לשמור מסלול למסך "שמורים". השמירות נשמרות במכשיר הזה, ועם חשבון גם בכל המכשירים שלכם.</li>
         </ul>
         <span style={{ fontSize: 12.5, color: 'var(--text-faint)', textAlign: 'center' }}>
           השימוש באתר מותנה בהסכמה ל
