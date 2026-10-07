@@ -7,7 +7,7 @@ import { fetchCreatorName, fetchSavedIds, addSavedRoutes, removeSavedRoute } fro
 import { fetchRatingStats, fetchMyRatings, rateRoute } from './lib/ratingsApi.js';
 import { COLLECTIONS } from './data/routes.js';
 import { TERMS_VERSION } from './data/terms.js';
-import { filterRoutes, hasActiveFilters } from './utils/filterRoutes.js';
+import { filterRoutes, hasActiveFilters, sortRoutes } from './utils/filterRoutes.js';
 import Header from './components/Header.jsx';
 import BottomNav from './components/BottomNav.jsx';
 import FeedScreen from './components/FeedScreen.jsx';
@@ -61,6 +61,7 @@ export default function App() {
 
   const [saved, setSaved] = useLocalStorageState('saved', {});
   const [mode, setMode] = useLocalStorageState('mode', 'public');
+  const [sort, setSort] = useLocalStorageState('sort', 'new');
   const [draft, setDraft] = useLocalStorageState('draft', DEFAULT_DRAFT);
   // the version of the terms (incl. privacy) this browser accepted; raising TERMS_VERSION asks everyone again
   const [acceptedTerms, setAcceptedTerms] = useLocalStorageState('termsAccepted', 0);
@@ -474,8 +475,8 @@ export default function App() {
   const visibleRoutes = useMemo(() => routes.filter((r) => r.published), [routes]);
   const filters = { query, collection, area: areaFilter, stopCat };
   const matched = useMemo(
-    () => filterRoutes(routes, { query, collection, area: areaFilter, stopCat }),
-    [routes, query, collection, areaFilter, stopCat],
+    () => sortRoutes(filterRoutes(routes, { query, collection, area: areaFilter, stopCat }), sort),
+    [routes, query, collection, areaFilter, stopCat, sort],
   );
 
   const hasFilters = hasActiveFilters(filters);
@@ -566,6 +567,8 @@ export default function App() {
               title={feedTitle}
               count={matched.length}
               routes={matched}
+              sort={sort}
+              onSort={setSort}
               saved={saved}
               onOpen={openRoute}
               onToggleSave={toggleSave}

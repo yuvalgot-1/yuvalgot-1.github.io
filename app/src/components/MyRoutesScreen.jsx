@@ -31,8 +31,9 @@ export default function MyRoutesScreen({ routes, onTogglePublish, onEdit, onDele
             <div className="mine-card__thumb">
               <ImageSlot
                 id={'cover-' + r.id}
-                placeholder="תמונה"
+                placeholder=""
                 editable
+                compactPaste
                 known={!!r.has_cover}
                 onUploaded={() => onCoverUploaded(r.id)}
               />

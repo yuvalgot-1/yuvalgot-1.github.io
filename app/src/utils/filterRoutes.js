@@ -23,3 +23,24 @@ export function filterRoutes(routes, { query = '', collection = 'all', area = 'a
 export function hasActiveFilters({ query = '', collection = 'all', area = 'all', stopCat = 'all' }) {
   return !!query.trim() || collection !== 'all' || area !== 'all' || stopCat !== 'all';
 }
+
+export const SORTS = [
+  { id: 'new', label: 'חדשים' },
+  { id: 'rating', label: 'דירוג גבוה' },
+  { id: 'featured', label: 'בחירת העורכים' },
+];
+
+const byNewest = (a, b) => String(b.created_at || '').localeCompare(String(a.created_at || ''));
+
+// Unrated routes go last when sorting by rating; ties fall back to the newest.
+export function sortRoutes(routes, sort = 'new') {
+  const list = [...routes];
+  if (sort === 'rating') {
+    return list.sort((a, b) =>
+      (b.rating_avg ?? -1) - (a.rating_avg ?? -1) || (b.rating_count || 0) - (a.rating_count || 0) || byNewest(a, b));
+  }
+  if (sort === 'featured') {
+    return list.sort((a, b) => Number(!!b.is_featured) - Number(!!a.is_featured) || byNewest(a, b));
+  }
+  return list.sort(byNewest);
+}
