@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { deleteMyAccount, resendConfirmation, signIn, signUp } from '../lib/accountApi.js';
 import { describeAuthError, isEmailNotConfirmed } from '../lib/authErrors.js';
+import { compactStoredImages } from '../lib/imagesApi.js';
 import { press } from '../utils/a11y.js';
 import PasswordResetForm from './PasswordResetForm.jsx';
 
@@ -15,6 +16,24 @@ export default function AccountScreen({ session, isCreator, creatorMode, onSignO
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deleteError, setDeleteError] = useState('');
+  const [compactStatus, setCompactStatus] = useState('');
+  const [compacting, setCompacting] = useState(false);
+
+  async function handleCompact() {
+    if (compacting) return;
+    setCompacting(true);
+    setCompactStatus('בודק את התמונות...');
+    try {
+      const r = await compactStoredImages({ onProgress: (n, total) => setCompactStatus(`מכווץ תמונה ${n} מתוך ${total}...`) });
+      const savedMb = ((r.bytesBefore - r.bytesAfter) / (1024 * 1024)).toFixed(1);
+      setCompactStatus(r.compacted
+        ? `כווצו ${r.compacted} תמונות, נחסכו ${savedMb}MB.` + (r.failed ? ` ${r.failed} לא הצליחו.` : '')
+        : 'כל התמונות כבר בגודל טוב.' + (r.failed ? ` ${r.failed} לא הצליחו.` : ''));
+    } catch {
+      setCompactStatus('לא הצלחנו לקרוא את התמונות. נסו שוב.');
+    }
+    setCompacting(false);
+  }
 
   function switchTab(next) {
     setTab(next);
@@ -100,6 +119,12 @@ export default function AccountScreen({ session, isCreator, creatorMode, onSignO
           ) : (
             <span className="link-action" {...press(onSwitchToCreator)}>מעבר למצב יוצר</span>
           ))}
+          {isCreator && creatorMode && (
+            <>
+              <span className="link-action" aria-disabled={compacting} {...press(handleCompact)}>כיווץ תמונות גדולות</span>
+              {compactStatus && <span role="status" style={{ fontSize: 13, color: 'var(--text-muted)' }}>{compactStatus}</span>}
+            </>
+          )}
           <button
             type="button"
             className="publish-btn"
