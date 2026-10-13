@@ -69,6 +69,8 @@ export default function App() {
   const termsAccepted = acceptedTerms === TERMS_VERSION;
   // the short first-visit tour; skipping it counts as seen
   const [tourSeen, setTourSeen] = useLocalStorageState('tourSeen', false);
+  // asked for again from the guide: shown whoever is signed in and in either mode
+  const [tourReplay, setTourReplay] = useState(false);
 
   const [screen, setScreen] = useState('feed');
   const [openId, setOpenId] = useState(null);
@@ -277,12 +279,12 @@ export default function App() {
   }
 
   // stable on purpose: the tour listens for Escape with it. setTourSeen only writes this key.
-  const finishTour = useCallback(() => setTourSeen(true), []); // eslint-disable-line react-hooks/exhaustive-deps
+  const finishTour = useCallback(() => { setTourSeen(true); setTourReplay(false); }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   function replayTour() {
     resetFilters();
     setScreen('feed');
-    setTourSeen(false);
+    setTourReplay(true);
   }
 
   function toggleSave(id) {
@@ -702,10 +704,10 @@ export default function App() {
 
         {toast && <div className="toast">{toast}</div>}
 
-        {/* visitors only: not in creator mode, not for a signed-in creator, and not before a shared
-            route link has opened, so it waits until the visitor first reaches the feed */}
-        {termsAccepted && !tourSeen && screen === 'feed' && linkHandled && !authLoading
-          && !isCreator && creatorName === null && (
+        {/* first visit: visitors only (not in creator mode, not for a signed-in creator), and not before
+            a shared route link has opened, so it waits until the visitor first reaches the feed */}
+        {termsAccepted && screen === 'feed' && (tourReplay || (!tourSeen && linkHandled && !authLoading
+          && !isCreator && creatorName === null)) && (
           <CoachTour onDone={finishTour} />
         )}
 

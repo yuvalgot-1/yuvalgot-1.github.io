@@ -21,7 +21,7 @@ const STEPS = [
   },
 ];
 
-const PAD = 6;
+const PAD = 8;
 
 export default function CoachTour({ onDone }) {
   // read once the feed is on the page: the tour can mount in the same render that opens the feed

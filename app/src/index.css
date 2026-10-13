@@ -26,6 +26,7 @@
   --save-inactive-bg: #F2F0E8;
   --dot-creator: #E0B15C;
   --dot-public: #7FBF9A;
+  --tour-ring: #F5B83D;
 }
 
 * { box-sizing: border-box; }
@@ -1254,9 +1255,16 @@ a:focus-visible {
 .tour__spotlight {
   position: fixed;
   border-radius: 16px;
-  box-shadow: 0 0 0 9999px rgba(18, 32, 27, .62);
+  border: 3px solid var(--tour-ring);
+  box-shadow: 0 0 0 9999px rgba(18, 32, 27, .62), 0 0 18px 4px rgba(245, 184, 61, .7);
   pointer-events: none;
   transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease;
+  animation: tour-pulse 1.6s ease-in-out infinite;
+}
+
+/* a soft glow that breathes around the ring so the eye finds it */
+@keyframes tour-pulse {
+  50% { box-shadow: 0 0 0 9999px rgba(18, 32, 27, .62), 0 0 26px 9px rgba(245, 184, 61, .9); }
 }
 
 .tour__bubble {
@@ -1312,5 +1320,5 @@ a:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tour__spotlight { transition: none; }
+  .tour__spotlight { transition: none; animation: none; }
 }
