@@ -23,12 +23,32 @@ const STEPS = [
 
 const PAD = 8;
 
+// Resolves once the page stops moving after a smooth scroll (or straight away if it never moved).
+function whenScrollSettles() {
+  return new Promise((resolve) => {
+    let last = window.scrollY;
+    let still = 0;
+    let frames = 0;
+    const tick = () => {
+      frames += 1;
+      still = window.scrollY === last ? still + 1 : 0;
+      last = window.scrollY;
+      if (still >= 4 || frames > 60) resolve();
+      else requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
 export default function CoachTour({ onDone }) {
   // read once the feed is on the page: the tour can mount in the same render that opens the feed
   const [steps, setSteps] = useState(null);
   const [index, setIndex] = useState(0);
   const [rect, setRect] = useState(null);
   const [bubbleTop, setBubbleTop] = useState(null);
+  // false while moving between steps: the ring and bubble fade out, the page scrolls,
+  // then both are placed once and fade back in, so nothing chases the scroll
+  const [shown, setShown] = useState(false);
   const bubbleRef = useRef(null);
   const nextRef = useRef(null);
   const step = steps?.[index];
@@ -57,13 +77,26 @@ export default function CoachTour({ onDone }) {
     if (steps && steps.length === 0) onDone();
   }, [steps, onDone]);
 
-  // bring the step's element into view, then follow it while the page settles
-  useLayoutEffect(() => {
+  // bring the step's element into view, wait for the page to settle, then show the step
+  useEffect(() => {
     const el = step && document.querySelector(step.selector);
     if (!el) return;
+    let cancelled = false;
+    setShown(false);
     const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    window.scrollTo({ top: scrollTargetFor(el.getBoundingClientRect(), window.scrollY, window.innerHeight), behavior: reduce ? 'auto' : 'smooth' });
-    measure();
+    const top = scrollTargetFor(el.getBoundingClientRect(), window.scrollY, window.innerHeight);
+    if (top !== window.scrollY) window.scrollTo({ top, behavior: reduce ? 'auto' : 'smooth' });
+    whenScrollSettles().then(() => {
+      if (cancelled) return;
+      measure();
+      setShown(true);
+    });
+    return () => { cancelled = true; };
+  }, [step, measure]);
+
+  // after a step is shown, follow the element if the visitor scrolls or turns the phone
+  useEffect(() => {
+    if (!shown) return;
     let frame = 0;
     const onChange = () => { cancelAnimationFrame(frame); frame = requestAnimationFrame(measure); };
     window.addEventListener('scroll', onChange, { passive: true });
@@ -73,12 +106,12 @@ export default function CoachTour({ onDone }) {
       window.removeEventListener('scroll', onChange);
       window.removeEventListener('resize', onChange);
     };
-  }, [step, measure]);
+  }, [shown, measure]);
 
   // the bubble's height is only known after it renders; place it again once it is
-  useLayoutEffect(() => { measure(); }, [index, measure]);
+  useLayoutEffect(() => { if (shown) measure(); }, [shown, measure]);
 
-  useEffect(() => { nextRef.current?.focus(); }, [index, steps]);
+  useEffect(() => { if (shown) nextRef.current?.focus({ preventScroll: true }); }, [shown]);
 
   useEffect(() => {
     const onKey = (e) => { if (e.key === 'Escape') onDone(); };
@@ -89,11 +122,16 @@ export default function CoachTour({ onDone }) {
   if (!step) return null;
 
   return (
-    <div className="tour" role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
+    <div className={'tour' + (shown ? ' tour--shown' : '')} role="dialog" aria-modal="true" aria-labelledby="tour-title" aria-describedby="tour-text">
+      <div className="tour__dim" />
       {rect && (
         <div
           className="tour__spotlight"
-          style={{ top: rect.top, left: rect.left, width: rect.width, height: rect.bottom - rect.top }}
+          style={{
+            transform: `translate3d(${rect.left}px, ${rect.top}px, 0)`,
+            width: rect.width,
+            height: rect.bottom - rect.top,
+          }}
         />
       )}
       <div className="tour__bubble" ref={bubbleRef} style={{ top: bubbleTop ?? '50%' }}>
