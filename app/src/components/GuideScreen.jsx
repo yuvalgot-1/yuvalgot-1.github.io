@@ -35,7 +35,7 @@ const FAQ = [
   },
 ];
 
-export default function GuideScreen({ onBack, onOpenInstall }) {
+export default function GuideScreen({ onBack, onOpenInstall, onReplayTour }) {
   return (
     <div className="builder">
       <div className="builder__heading">
@@ -54,6 +54,9 @@ export default function GuideScreen({ onBack, onOpenInstall }) {
 
       <span className="link-action" style={{ textAlign: 'center' }} {...press(onOpenInstall)}>
         איך מוסיפים את האתר למסך הבית?
+      </span>
+      <span className="link-action" style={{ textAlign: 'center' }} {...press(onReplayTour)}>
+        להציג שוב את ההדרכה
       </span>
       <span className="link-action" style={{ textAlign: 'center' }} {...press(onBack)}>חזרה</span>
     </div>

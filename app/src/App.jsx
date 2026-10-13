@@ -20,6 +20,7 @@ import InstallScreen from './components/InstallScreen.jsx';
 import RecoveryScreen from './components/RecoveryScreen.jsx';
 import GuideScreen from './components/GuideScreen.jsx';
 import OnboardingModal from './components/OnboardingModal.jsx';
+import CoachTour from './components/CoachTour.jsx';
 
 // rarely-used screens are loaded on demand to keep the first page load small
 const MyRoutesScreen = lazy(() => import('./components/MyRoutesScreen.jsx'));
@@ -66,6 +67,8 @@ export default function App() {
   // the version of the terms (incl. privacy) this browser accepted; raising TERMS_VERSION asks everyone again
   const [acceptedTerms, setAcceptedTerms] = useLocalStorageState('termsAccepted', 0);
   const termsAccepted = acceptedTerms === TERMS_VERSION;
+  // the short first-visit tour; skipping it counts as seen
+  const [tourSeen, setTourSeen] = useLocalStorageState('tourSeen', false);
 
   const [screen, setScreen] = useState('feed');
   const [openId, setOpenId] = useState(null);
@@ -271,6 +274,15 @@ export default function App() {
   function acceptTerms() {
     setAcceptedTerms(TERMS_VERSION);
     if (screen === 'terms') setScreen('feed');
+  }
+
+  // stable on purpose: the tour listens for Escape with it. setTourSeen only writes this key.
+  const finishTour = useCallback(() => setTourSeen(true), []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  function replayTour() {
+    resetFilters();
+    setScreen('feed');
+    setTourSeen(false);
   }
 
   function toggleSave(id) {
@@ -587,7 +599,7 @@ export default function App() {
           )}
 
           {screen === 'guide' && (
-            <GuideScreen onBack={() => setScreen('feed')} onOpenInstall={() => setScreen('install')} />
+            <GuideScreen onBack={() => setScreen('feed')} onOpenInstall={() => setScreen('install')} onReplayTour={replayTour} />
           )}
 
           {screen === 'install' && (
@@ -689,6 +701,13 @@ export default function App() {
         {(termsAccepted || screen !== 'terms') && <BottomNav mode={mode} screen={screen} onNavigate={navigate} />}
 
         {toast && <div className="toast">{toast}</div>}
+
+        {/* visitors only: not in creator mode, not for a signed-in creator, and not before a shared
+            route link has opened, so it waits until the visitor first reaches the feed */}
+        {termsAccepted && !tourSeen && screen === 'feed' && linkHandled && !authLoading
+          && !isCreator && creatorName === null && (
+          <CoachTour onDone={finishTour} />
+        )}
 
         {!termsAccepted && screen !== 'terms' && (
           <OnboardingModal onAccept={acceptTerms} onOpenTerms={() => openTerms()} />

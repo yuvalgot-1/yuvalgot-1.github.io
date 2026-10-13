@@ -650,13 +650,8 @@ button, input, textarea { font-family: inherit; }
   color: var(--text-dark);
 }
 
-.onboarding-list {
-  margin: 0;
-  padding-right: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  font-size: 14px;
+.onboarding-text {
+  font-size: 14.5px;
   line-height: 1.6;
   color: var(--text-body);
 }
@@ -1246,3 +1241,76 @@ a:focus-visible {
 .rate-panel__send { flex: 0 0 auto; align-self: stretch; font-family: inherit; }
 .rate-panel__send:disabled { opacity: 0.5; cursor: default; }
 .rate-panel__send:disabled:hover { background: var(--bg-header); }
+
+/* ---------- First-visit tour ---------- */
+
+/* above the bottom nav and toasts; the spotlight's huge shadow darkens everything around it */
+.tour {
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+}
+
+.tour__spotlight {
+  position: fixed;
+  border-radius: 16px;
+  box-shadow: 0 0 0 9999px rgba(18, 32, 27, .62);
+  pointer-events: none;
+  transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease;
+}
+
+.tour__bubble {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 360px;
+  background: var(--bg-card);
+  border-radius: 18px;
+  padding: 16px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, .3);
+}
+
+.tour__count { font-size: 11.5px; font-weight: 600; color: var(--text-faint); }
+.tour__title { font-size: 16.5px; font-weight: 800; color: var(--text-dark); }
+.tour__text { font-size: 14px; line-height: 1.6; color: var(--text-body); }
+
+.tour__actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.tour__next {
+  flex: 1 1 auto;
+  min-height: 46px;
+  border: none;
+  border-radius: 12px;
+  background: var(--bg-header);
+  color: var(--bg-app);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+}
+.tour__next:hover { background: var(--bg-header-hover); }
+
+.tour__skip {
+  min-height: 46px;
+  padding: 0 14px;
+  border: none;
+  background: none;
+  color: var(--link);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tour__spotlight { transition: none; }
+}

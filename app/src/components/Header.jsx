@@ -55,7 +55,7 @@ export default function Header({
       </div>
 
       {showSearch && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }} data-tour="search">
           <div className="search-row">
             <span className="search-row__icon">⌕</span>
             <input
