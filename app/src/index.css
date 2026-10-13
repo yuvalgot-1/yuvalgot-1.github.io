@@ -1245,32 +1245,57 @@ a:focus-visible {
 
 /* ---------- First-visit tour ---------- */
 
-/* above the bottom nav and toasts; the spotlight's huge shadow darkens everything around it */
+/* above the bottom nav and toasts. Only opacity and transform animate, so the phone can
+   hand the motion to the GPU instead of repainting the page on every frame. */
 .tour {
   position: fixed;
   inset: 0;
   z-index: 40;
 }
 
+/* the plain dim shown between steps, while the ring is hidden */
+.tour__dim {
+  position: absolute;
+  inset: 0;
+  background: rgba(18, 32, 27, .62);
+}
+.tour--shown .tour__dim { opacity: 0; transition: opacity .25s ease .12s; }
+
+/* the huge shadow darkens everything around the highlighted element */
 .tour__spotlight {
   position: fixed;
+  top: 0;
+  left: 0;
   border-radius: 16px;
   border: 3px solid var(--tour-ring);
-  box-shadow: 0 0 0 9999px rgba(18, 32, 27, .62), 0 0 18px 4px rgba(245, 184, 61, .7);
+  box-shadow: 0 0 0 9999px rgba(18, 32, 27, .62);
   pointer-events: none;
-  transition: top .25s ease, left .25s ease, width .25s ease, height .25s ease;
-  animation: tour-pulse 1.6s ease-in-out infinite;
+  opacity: 0;
+  will-change: transform, opacity;
 }
+.tour--shown .tour__spotlight { opacity: 1; transition: opacity .22s ease; }
 
 /* a soft glow that breathes around the ring so the eye finds it */
+.tour__spotlight::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  box-shadow: 0 0 22px 6px rgba(245, 184, 61, .85);
+  opacity: .45;
+  animation: tour-pulse 1.8s ease-in-out infinite alternate;
+  will-change: opacity;
+}
+
 @keyframes tour-pulse {
-  50% { box-shadow: 0 0 0 9999px rgba(18, 32, 27, .62), 0 0 26px 9px rgba(245, 184, 61, .9); }
+  to { opacity: 1; }
 }
 
 .tour__bubble {
   position: fixed;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translate3d(-50%, 8px, 0);
+  opacity: 0;
   width: calc(100% - 32px);
   max-width: 360px;
   background: var(--bg-card);
@@ -1280,6 +1305,11 @@ a:focus-visible {
   flex-direction: column;
   gap: 6px;
   box-shadow: 0 16px 40px rgba(0, 0, 0, .3);
+}
+.tour--shown .tour__bubble {
+  transform: translate3d(-50%, 0, 0);
+  opacity: 1;
+  transition: opacity .22s ease, transform .22s ease;
 }
 
 .tour__count { font-size: 11.5px; font-weight: 600; color: var(--text-faint); }
@@ -1320,5 +1350,7 @@ a:focus-visible {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tour__spotlight { transition: none; animation: none; }
+  .tour--shown .tour__dim, .tour--shown .tour__spotlight, .tour--shown .tour__bubble { transition: none; }
+  .tour__bubble, .tour--shown .tour__bubble { transform: translate3d(-50%, 0, 0); }
+  .tour__spotlight::after { animation: none; opacity: .8; }
 }
