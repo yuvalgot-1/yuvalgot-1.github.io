@@ -69,6 +69,7 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
                       placeholder={s.name}
                       editable={editable}
                       known={!!s.image}
+                      thumb
                       onUploaded={() => onStopImageUploaded(i)}
                     />
                     <div className="stop-card__tag" style={{ background: getCategory(s.cat).color }}>
