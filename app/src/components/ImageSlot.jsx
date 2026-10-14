@@ -12,7 +12,29 @@ function publicUrlFor(path) {
   return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
 }
 
-export default function ImageSlot({ id, placeholder, className, height, editable, known, onUploaded, compactPaste }) {
+// The browser's own loading="lazy" starts fetching photos 1-2 screens ahead (more on slow
+// networks), so on a phone a dozen full-size photos split the bandwidth and none of them
+// shows for a long time. Start each photo only when it is about to scroll into view.
+const NEAR_VIEW = '200px 0px';
+
+function useNearView(ref, enabled) {
+  const [near, setNear] = useState(!enabled || typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    if (near) return undefined;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        setNear(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: NEAR_VIEW });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref, near]);
+  return near;
+}
+
+// priority: the photo is on screen when the page opens, so fetch it first, ahead of the rest.
+export default function ImageSlot({ id, placeholder, className, height, editable, known, onUploaded, compactPaste, priority }) {
   const skipLoad = known === false;
   const baseUrl = publicUrlFor(id);
   const [src, setSrc] = useState(baseUrl);
@@ -24,6 +46,8 @@ export default function ImageSlot({ id, placeholder, className, height, editable
   const [uploading, setUploading] = useState(false);
   const [pasteError, setPasteError] = useState('');
   const inputRef = useRef(null);
+  const slotRef = useRef(null);
+  const near = useNearView(slotRef, !priority);
 
   useEffect(() => {
     setSrc(publicUrlFor(id));
@@ -81,10 +105,11 @@ export default function ImageSlot({ id, placeholder, className, height, editable
     }
   }
 
-  const showImage = !broken;
+  const showImage = !broken && near;
 
   return (
     <div
+      ref={slotRef}
       className={`image-slot ${dragOver ? 'image-slot--drag' : ''} ${className || ''}`}
       style={height ? { height } : undefined}
       aria-label={editable ? 'העלאת תמונה' : undefined}
@@ -117,7 +142,8 @@ export default function ImageSlot({ id, placeholder, className, height, editable
           src={src}
           alt=""
           className="image-slot__img"
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'low'}
           decoding="async"
           style={{ opacity: loaded ? 1 : 0 }}
           onLoad={() => setLoaded(true)}

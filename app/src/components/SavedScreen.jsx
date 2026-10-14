@@ -8,8 +8,8 @@ export default function SavedScreen({ routes, saved, onOpen, onToggleSave, onOpe
         <span className="feed__count">{routes.length} מסלולים</span>
       </div>
 
-      {routes.map((r) => (
-        <RouteCard key={r.id} route={r} saved={!!saved[r.id]} onOpen={onOpen} onToggleSave={onToggleSave} onOpenProfile={onOpenProfile} />
+      {routes.map((r, i) => (
+        <RouteCard key={r.id} priority={i === 0} route={r} saved={!!saved[r.id]} onOpen={onOpen} onToggleSave={onToggleSave} onOpenProfile={onOpenProfile} />
       ))}
 
       {routes.length === 0 && (

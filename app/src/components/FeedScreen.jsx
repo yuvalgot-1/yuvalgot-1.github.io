@@ -31,8 +31,8 @@ export default function FeedScreen({ title, count, routes, sort, onSort, saved, 
         <span>כל המסלולים נכתבו על ידי מטיילים אמיתיים ולא על ידי בינה מלאכותית</span>
       </div>
 
-      {routes.map((r) => (
-        <RouteCard key={r.id} route={r} saved={!!saved[r.id]} onOpen={onOpen} onToggleSave={onToggleSave} onOpenProfile={onOpenProfile} />
+      {routes.map((r, i) => (
+        <RouteCard key={r.id} priority={i === 0} route={r} saved={!!saved[r.id]} onOpen={onOpen} onToggleSave={onToggleSave} onOpenProfile={onOpenProfile} />
       ))}
 
       {empty && (

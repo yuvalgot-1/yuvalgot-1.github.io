@@ -21,6 +21,7 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
           editable={editable}
           known={!!route.has_cover}
           onUploaded={onCoverUploaded}
+          priority
         />
         <div className="detail-cover__scrim" />
         <button className="detail-cover__back" onClick={onBack}>›</button>
