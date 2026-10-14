@@ -8,22 +8,33 @@ import { press } from '../utils/a11y.js';
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
 
 // The browser's own loading="lazy" starts fetching photos 1-2 screens ahead (more on slow
-// networks), so on a phone a dozen full-size photos split the bandwidth and none of them
-// shows for a long time. Start each photo only when it is about to scroll into view.
-const NEAR_VIEW = '200px 0px';
+// networks), so on a phone a dozen photos split the bandwidth and the ones on screen
+// show late. Photos on screen load right away; the next two screens' worth wait until
+// the first photo has shown (or a few seconds passed), so they're ready by the time
+// the visitor scrolls to them.
+const AHEAD = '200% 0px';
+// Screens with no first photo (or a photo that never arrives) still load the rest.
+const FIRST_SCREEN_WAIT_MS = 8000;
+
+let openGate;
+const firstScreenShown = new Promise((resolve) => { openGate = resolve; });
+setTimeout(() => openGate(), FIRST_SCREEN_WAIT_MS);
 
 function useNearView(ref, enabled) {
   const [near, setNear] = useState(!enabled || typeof IntersectionObserver === 'undefined');
   useEffect(() => {
     if (near) return undefined;
-    const observer = new IntersectionObserver((entries) => {
-      if (entries.some((e) => e.isIntersecting)) {
-        setNear(true);
-        observer.disconnect();
-      }
-    }, { rootMargin: NEAR_VIEW });
-    observer.observe(ref.current);
-    return () => observer.disconnect();
+    let cancelled = false;
+    const show = () => { if (!cancelled) setNear(true); };
+    const watch = (rootMargin, onNear) => {
+      const observer = new IntersectionObserver((entries) => {
+        if (entries.some((e) => e.isIntersecting)) onNear();
+      }, { rootMargin });
+      observer.observe(ref.current);
+      return observer;
+    };
+    const observers = [watch('0px', show), watch(AHEAD, () => firstScreenShown.then(show))];
+    return () => { cancelled = true; observers.forEach((o) => o.disconnect()); };
   }, [ref, near]);
   return near;
 }
@@ -45,6 +56,7 @@ export default function ImageSlot({ id, placeholder, className, height, editable
   const inputRef = useRef(null);
   const slotRef = useRef(null);
   const near = useNearView(slotRef, !priority);
+  useEffect(() => { if (priority && skipLoad) openGate(); }, [priority, skipLoad]);
 
   useEffect(() => {
     setSrc(firstUrl);
@@ -144,8 +156,12 @@ export default function ImageSlot({ id, placeholder, className, height, editable
           fetchPriority={priority ? 'high' : 'low'}
           decoding="async"
           style={{ opacity: loaded ? 1 : 0 }}
-          onLoad={() => setLoaded(true)}
-          onError={() => (thumb && src === firstUrl ? setSrc(baseUrl) : setBroken(true))}
+          onLoad={() => { setLoaded(true); if (priority) openGate(); }}
+          onError={() => {
+            if (thumb && src === firstUrl) return setSrc(baseUrl);
+            setBroken(true);
+            if (priority) openGate();
+          }}
         />
       )}
       {!loaded && (
