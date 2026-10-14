@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { useLocalStorageState } from './hooks/useLocalStorageState.js';
 import { supabase } from './lib/supabase.js';
 import { stopImagePath } from './utils/url.js';
@@ -203,6 +203,24 @@ export default function App() {
     }, 5000);
     return () => clearTimeout(timer);
   }, [userId, creatorName, routesLoading, thumbsDone]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // The page scrolls as a whole, so without this a route opened from far down the feed
+  // would show at the feed's scroll position (often its end, by the ratings). Each new
+  // screen opens at the top; going back to a list returns to where the visitor was.
+  const scrollByView = useRef({});
+  const lastView = useRef(null);
+  const view = screen === 'detail' ? 'detail:' + openId : screen;
+  useEffect(() => {
+    // read while scrolling: by the time the next screen renders, the page may have shrunk
+    const remember = () => { if (lastView.current) scrollByView.current[lastView.current] = window.scrollY; };
+    window.addEventListener('scroll', remember, { passive: true });
+    return () => window.removeEventListener('scroll', remember);
+  }, []);
+  useLayoutEffect(() => {
+    const backToList = lastView.current?.startsWith('detail:') && screen !== 'detail';
+    window.scrollTo(0, backToList ? scrollByView.current[view] || 0 : 0);
+    lastView.current = view;
+  }, [view]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // open a shared link (#/route/<id>) once routes have loaded
   const [linkHandled, setLinkHandled] = useState(false);
