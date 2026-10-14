@@ -35,6 +35,7 @@ export default function MyRoutesScreen({ routes, onTogglePublish, onEdit, onDele
                 editable
                 compactPaste
                 known={!!r.has_cover}
+                thumb
                 onUploaded={() => onCoverUploaded(r.id)}
               />
             </div>

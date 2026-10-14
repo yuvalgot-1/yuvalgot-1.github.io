@@ -1,21 +1,40 @@
 import { useEffect, useRef, useState } from 'react';
 import { supabase } from '../lib/supabase.js';
-
+import { BUCKET, publicUrlFor, thumbPathFor, uploadThumb } from '../lib/imagesApi.js';
 import { resizeImage } from '../utils/resizeImage.js';
 import { press } from '../utils/a11y.js';
 
 // Checked before resizing - phone photos are big, and are shrunk before upload.
 const MAX_FILE_BYTES = 20 * 1024 * 1024;
-const BUCKET = 'route-images';
 
-function publicUrlFor(path) {
-  return supabase.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+// The browser's own loading="lazy" starts fetching photos 1-2 screens ahead (more on slow
+// networks), so on a phone a dozen full-size photos split the bandwidth and none of them
+// shows for a long time. Start each photo only when it is about to scroll into view.
+const NEAR_VIEW = '200px 0px';
+
+function useNearView(ref, enabled) {
+  const [near, setNear] = useState(!enabled || typeof IntersectionObserver === 'undefined');
+  useEffect(() => {
+    if (near) return undefined;
+    const observer = new IntersectionObserver((entries) => {
+      if (entries.some((e) => e.isIntersecting)) {
+        setNear(true);
+        observer.disconnect();
+      }
+    }, { rootMargin: NEAR_VIEW });
+    observer.observe(ref.current);
+    return () => observer.disconnect();
+  }, [ref, near]);
+  return near;
 }
 
-export default function ImageSlot({ id, placeholder, className, height, editable, known, onUploaded, compactPaste }) {
+// priority: the photo is on screen when the page opens, so fetch it first, ahead of the rest.
+// thumb: the slot is small, so show the light copy (falls back to the photo if there is none).
+export default function ImageSlot({ id, placeholder, className, height, editable, known, onUploaded, compactPaste, priority, thumb }) {
   const skipLoad = known === false;
   const baseUrl = publicUrlFor(id);
-  const [src, setSrc] = useState(baseUrl);
+  const firstUrl = thumb ? publicUrlFor(thumbPathFor(id)) : baseUrl;
+  const [src, setSrc] = useState(firstUrl);
   const [loaded, setLoaded] = useState(false);
   const [broken, setBroken] = useState(skipLoad);
   const [dragOver, setDragOver] = useState(false);
@@ -24,12 +43,14 @@ export default function ImageSlot({ id, placeholder, className, height, editable
   const [uploading, setUploading] = useState(false);
   const [pasteError, setPasteError] = useState('');
   const inputRef = useRef(null);
+  const slotRef = useRef(null);
+  const near = useNearView(slotRef, !priority);
 
   useEffect(() => {
-    setSrc(publicUrlFor(id));
+    setSrc(firstUrl);
     setLoaded(false);
     setBroken(skipLoad);
-  }, [id, skipLoad]);
+  }, [firstUrl, skipLoad]);
 
   async function handleFile(file) {
     if (!editable || !file || !file.type.startsWith('image/')) return;
@@ -46,6 +67,7 @@ export default function ImageSlot({ id, placeholder, className, height, editable
       upsert: true,
       contentType: toUpload.type || file.type,
     });
+    if (!error) await uploadThumb(id, toUpload);
     setUploading(false);
     if (error) {
       setUploadError(true);
@@ -81,10 +103,11 @@ export default function ImageSlot({ id, placeholder, className, height, editable
     }
   }
 
-  const showImage = !broken;
+  const showImage = !broken && near;
 
   return (
     <div
+      ref={slotRef}
       className={`image-slot ${dragOver ? 'image-slot--drag' : ''} ${className || ''}`}
       style={height ? { height } : undefined}
       aria-label={editable ? 'העלאת תמונה' : undefined}
@@ -117,11 +140,12 @@ export default function ImageSlot({ id, placeholder, className, height, editable
           src={src}
           alt=""
           className="image-slot__img"
-          loading="lazy"
+          loading={priority ? 'eager' : 'lazy'}
+          fetchPriority={priority ? 'high' : 'low'}
           decoding="async"
           style={{ opacity: loaded ? 1 : 0 }}
           onLoad={() => setLoaded(true)}
-          onError={() => setBroken(true)}
+          onError={() => (thumb && src === firstUrl ? setSrc(baseUrl) : setBroken(true))}
         />
       )}
       {!loaded && (

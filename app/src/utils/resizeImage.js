@@ -12,10 +12,10 @@ export function fitWithin(width, height, max = MAX_SIDE) {
 
 // Phone photos are several MB. Shrink them before upload so pages load fast.
 // Falls back to the original file if the browser can't process it.
-export async function resizeImage(file) {
+export async function resizeImage(file, { maxSide = MAX_SIDE, quality = QUALITY } = {}) {
   try {
     const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
-    const { width, height } = fitWithin(bitmap.width, bitmap.height);
+    const { width, height } = fitWithin(bitmap.width, bitmap.height, maxSide);
     const alreadySmall = width === bitmap.width && file.size <= SKIP_BELOW_BYTES;
     if (alreadySmall) {
       bitmap.close?.();
@@ -29,7 +29,7 @@ export async function resizeImage(file) {
     ctx.fillRect(0, 0, width, height);
     ctx.drawImage(bitmap, 0, 0, width, height);
     bitmap.close?.();
-    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', QUALITY));
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
     return blob && blob.size < file.size ? blob : file;
   } catch {
     return file;

@@ -21,6 +21,7 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
           editable={editable}
           known={!!route.has_cover}
           onUploaded={onCoverUploaded}
+          priority
         />
         <div className="detail-cover__scrim" />
         <button className="detail-cover__back" onClick={onBack}>›</button>
@@ -68,6 +69,7 @@ export default function RouteDetailScreen({ route, saved, onToggleSave, onOpenPr
                       placeholder={s.name}
                       editable={editable}
                       known={!!s.image}
+                      thumb
                       onUploaded={() => onStopImageUploaded(i)}
                     />
                     <div className="stop-card__tag" style={{ background: getCategory(s.cat).color }}>

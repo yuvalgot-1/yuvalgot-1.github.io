@@ -9,11 +9,11 @@ function categoryCounts(stops) {
   return Object.keys(CATEGORIES).filter((c) => counts[c]).map((c) => ({ cat: c, count: counts[c] }));
 }
 
-export default function RouteCard({ route, saved, onOpen, onToggleSave, onOpenProfile }) {
+export default function RouteCard({ route, saved, onOpen, onToggleSave, onOpenProfile, priority }) {
   return (
     <div className="route-card" {...press(() => onOpen(route.id))}>
       <div className="route-card__cover">
-        <ImageSlot id={'cover-' + route.id} placeholder={'תמונת שער · ' + route.area} known={!!route.has_cover} />
+        <ImageSlot id={'cover-' + route.id} placeholder={'תמונת שער · ' + route.area} known={!!route.has_cover} priority={priority} thumb />
         <div className="route-card__scrim" />
         <RatingSummary className="rating-summary--badge" avg={route.rating_avg} count={route.rating_count} />
         {route.is_featured && <span className="editors-pick-badge">✦ בחירת העורכים</span>}

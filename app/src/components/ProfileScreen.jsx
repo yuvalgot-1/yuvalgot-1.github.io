@@ -12,8 +12,8 @@ export default function ProfileScreen({ name, routes, saved, onOpen, onToggleSav
         </div>
       </div>
 
-      {routes.map((r) => (
-        <RouteCard key={r.id} route={r} saved={!!saved[r.id]} onOpen={onOpen} onToggleSave={onToggleSave} />
+      {routes.map((r, i) => (
+        <RouteCard key={r.id} priority={i === 0} route={r} saved={!!saved[r.id]} onOpen={onOpen} onToggleSave={onToggleSave} />
       ))}
 
       {routes.length === 0 && <div className="feed__empty">עוד אין מסלולים מפורסמים.</div>}

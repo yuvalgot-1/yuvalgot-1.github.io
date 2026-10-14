@@ -3,6 +3,7 @@ import { useLocalStorageState } from './hooks/useLocalStorageState.js';
 import { supabase } from './lib/supabase.js';
 import { stopImagePath } from './utils/url.js';
 import { fetchRoutes, insertRoute, updateRoute, deleteRoute } from './lib/routesApi.js';
+import { createMissingThumbs, moveImage, removeImages } from './lib/imagesApi.js';
 import { fetchCreatorName, fetchSavedIds, addSavedRoutes, removeSavedRoute } from './lib/accountApi.js';
 import { fetchRatingStats, fetchMyRatings, rateRoute } from './lib/ratingsApi.js';
 import { COLLECTIONS } from './data/routes.js';
@@ -191,6 +192,18 @@ export default function App() {
     })();
   }, [userId, routesLoading, syncedUser, routes, saved, setSaved]);
 
+  // Photos from before the light copies existed get theirs once, from the first
+  // creator's browser that opens the site (only creators may write to storage).
+  const [thumbsDone, setThumbsDone] = useLocalStorageState('thumbsDone', false);
+  useEffect(() => {
+    if (!userId || !creatorName || routesLoading || thumbsDone) return undefined;
+    // wait until the page has settled so this never slows down what the creator sees
+    const timer = setTimeout(() => {
+      createMissingThumbs().then(() => setThumbsDone(true)).catch(() => {});
+    }, 5000);
+    return () => clearTimeout(timer);
+  }, [userId, creatorName, routesLoading, thumbsDone]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // open a shared link (#/route/<id>) once routes have loaded
   const [linkHandled, setLinkHandled] = useState(false);
   useEffect(() => {
@@ -349,7 +362,7 @@ export default function App() {
     }
     try {
       const imagePaths = ['cover-' + id, ...route.stops.map((s, i) => stopImagePath(id, s, i))];
-      await supabase.storage.from('route-images').remove(imagePaths);
+      await removeImages(imagePaths);
     } catch {
       // route is already deleted - leftover images are harmless
     }
@@ -393,7 +406,7 @@ export default function App() {
   function removeDraftStop(index) {
     const removed = draft.stops[index];
     if (removed?.draftImage) {
-      supabase.storage.from('route-images').remove(['draft-stop-' + removed.draftImage]).catch(() => {});
+      removeImages(['draft-stop-' + removed.draftImage]).catch(() => {});
     }
     setDraft((d) => ({ ...d, stops: d.stops.filter((_, i) => i !== index) }));
   }
@@ -429,12 +442,11 @@ export default function App() {
     if (draft.stops.length < 2) return;
     const isEdit = !!draft.editingId;
     const routeId = isEdit ? draft.editingId : 'custom-' + Date.now();
-    const bucket = supabase.storage.from('route-images');
     const stops = await Promise.all(draft.stops.map(async (stop) => {
       const { draftImage, legacyPath, ...rest } = stop;
       const imgId = draftImage || (legacyPath && Date.now() + '-' + Math.random().toString(36).slice(2, 8));
       if (!imgId) return rest;
-      const { error } = await bucket.move(draftImage ? 'draft-stop-' + draftImage : legacyPath, 'stop-img-' + imgId);
+      const { error } = await moveImage(draftImage ? 'draft-stop-' + draftImage : legacyPath, 'stop-img-' + imgId);
       return error ? { ...rest, image: false } : { ...rest, image: true, imgId };
     }));
     const routeFields = {
@@ -450,7 +462,7 @@ export default function App() {
       } else {
         const id = routeId;
         await insertRoute({ id, blurb: '', published: true, author: creatorName, ...routeFields });
-        const { error: moveError } = await supabase.storage.from('route-images').move('draft-cover-' + userId, 'cover-' + id);
+        const { error: moveError } = await moveImage('draft-cover-' + userId, 'cover-' + id);
         if (!moveError) {
           await updateRoute(id, { has_cover: true });
         }
